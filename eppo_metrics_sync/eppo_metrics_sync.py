@@ -105,7 +105,7 @@ class EppoMetricsSync:
 
         response = requests.post(API_ENDPOINT, json=payload, headers=headers)
 
-        if response.status_code == 200:
+        if response.status_code < 400:
             print('Metrics synced')
         else:
             raise Exception(f"Request failed {response.status_code}: {response.text}")
