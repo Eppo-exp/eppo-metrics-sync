@@ -192,9 +192,9 @@
                                 "description": "Only used if operation = conversion",
                                 "type": "object",
                                 "additionalProperties": false,
-                                "required": ["comparions_operator", "aggregation_type", "breach_value"],
+                                "required": ["comparison_operator", "aggregation_type", "breach_value"],
                                 "properties": {
-                                    "comparions_operator": {
+                                    "comparison_operator": {
                                         "description": "One of gt or gte",
                                         "enum": ["gt", "gte"]
                                     },
