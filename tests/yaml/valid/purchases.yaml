@@ -20,6 +20,7 @@ fact_sources:
     column: COUNTRY
   - name: Browser
     column: BROWSER
+  reference_url: https://github.com/Eppo-exp/eppo-metrics-sync
 metrics:
 - name: Unique Purchase by User
   entity: User # it would be nice if this was optional if there is exactly 1 entity defined above
