@@ -9,10 +9,11 @@ if __name__ == '__main__':
     )
     parser.add_argument("directory", help="The directory of yaml files to process")
     parser.add_argument("--dryrun", action="store_true", help="Run in dry run mode")
+    parser.add_argument("--schema", help="One of: eppo[default], dbt", default='eppo')
 
     args = parser.parse_args()
 
-    eppo_metrics_sync = EppoMetricsSync(directory = args.directory)
+    eppo_metrics_sync = EppoMetricsSync(directory = args.directory, schema_type=args.schema)
     
     if args.dryrun:
         eppo_metrics_sync.read_yaml_files()

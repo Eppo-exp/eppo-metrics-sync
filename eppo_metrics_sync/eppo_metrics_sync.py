@@ -7,17 +7,21 @@ from eppo_metrics_sync.validation import (
     metric_aggregation_is_valid
 )
 
+from eppo_metrics_sync.dbt_model_parser import DbtModelParser
+
 API_ENDPOINT = 'https://eppo.cloud/api/v1/metrics/sync'
 
 class EppoMetricsSync:
     def __init__(
         self,
-        directory
+        directory,
+        schema_type = 'eppo'
     ):
         self.directory = directory
         self.fact_sources = []
         self.metrics = []
         self.validation_errors = []
+        self.schema_type = schema_type
 
         # temporary: ideally would pull this from Eppo API
         package_root = os.path.dirname(os.path.abspath(__file__))
@@ -26,13 +30,24 @@ class EppoMetricsSync:
             self.schema = json.load(schema_file)
     
 
-    def load_yaml(self, path):
+    def load_eppo_yaml(self, path):
         with open(path, 'r') as yaml_file:
             yaml_data = yaml.safe_load(yaml_file)
             if 'fact_sources' in yaml_data:
                 self.fact_sources.extend(yaml_data['fact_sources'])
             if 'metrics' in yaml_data:
                 self.metrics.extend(yaml_data['metrics'])
+
+    def load_dbt_yaml(self, path):
+        with open(path, 'r') as yaml_file:
+            yaml_data = yaml.safe_load(yaml_file)
+        models = yaml_data.get('models')
+        if models:
+            for model in models:
+                self.fact_sources.append(
+                    DbtModelParser(model).build()
+                )
+
         
 
     def read_yaml_files(self):
@@ -51,14 +66,25 @@ class EppoMetricsSync:
         for root, _, files in os.walk(self.directory):
             for file in files:
                 if file.endswith(".yaml") or file.endswith(".yml"):
+
                     yaml_path = os.path.join(root, file)
-                    valid = yaml_is_valid(yaml_path)
-                    if valid['passed']:
-                        self.load_yaml(yaml_path)
+
+                    if self.schema_type == 'eppo':
+                        valid = yaml_is_valid(yaml_path)
+                        if valid['passed']:
+                            self.load_eppo_yaml(yaml_path)
+                        else:
+                            self.validation_errors.append(
+                                f"Schema violation in {yaml_path}: \n{valid.error_message}"
+                            )
+                    
+                    elif self.schema_type == 'dbt':
+                        self.load_dbt_schema(yaml_path)
+                    
                     else:
-                        self.validation_errors.append(
-                            f"Schema violation in {yaml_path}: \n{valid.error_message}"
-                        )
+                        raise ValueError(f'Unexpected schema_type: {self.schema_type}')
+                        
+
         
         if len(self.fact_sources) == 0 and len(self.metrics) == 0:
             raise ValueError(

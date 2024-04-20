@@ -15,7 +15,7 @@ test_yaml_dir = "tests/yaml/invalid"
 def test_unique_fact_source_names():
 
     eppo_metrics_sync = EppoMetricsSync(directory = None)
-    eppo_metrics_sync.load_yaml(
+    eppo_metrics_sync.load_eppo_yaml(
         path = test_yaml_dir + "/duplicated_fact_source_names.yaml")
     
     with pytest.raises(ValueError, match = "Fact source names are not unique: upgrades_table"):
@@ -25,7 +25,7 @@ def test_unique_fact_source_names():
 def test_unique_metric_names():
 
     eppo_metrics_sync = EppoMetricsSync(directory = None)
-    eppo_metrics_sync.load_yaml(
+    eppo_metrics_sync.load_eppo_yaml(
         path = test_yaml_dir + "/duplicated_metric_names.yaml")
     
     with pytest.raises(ValueError, match = "Metric names are not unique: Total Upgrades to Paid Plan"):
@@ -35,7 +35,7 @@ def test_unique_metric_names():
 def test_unique_fact_names():
 
     eppo_metrics_sync = EppoMetricsSync(directory = None)
-    eppo_metrics_sync.load_yaml(
+    eppo_metrics_sync.load_eppo_yaml(
         path = test_yaml_dir + "/duplicated_fact_names.yaml")
     
     with pytest.raises(ValueError, match="Fact names are not unique: upgrades"):
@@ -54,7 +54,7 @@ def test_unique_fact_names():
 
 def test_invalid_fact_reference():
     eppo_metrics_sync = EppoMetricsSync(directory = None)
-    eppo_metrics_sync.load_yaml(
+    eppo_metrics_sync.load_eppo_yaml(
         path = test_yaml_dir + "/invalid_fact_reference.yaml")
     with pytest.raises(ValueError, match = re.escape("Invalid fact reference(s): revenue")):
         eppo_metrics_sync.validate()
