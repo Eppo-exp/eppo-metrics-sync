@@ -79,7 +79,7 @@ class EppoMetricsSync:
                             )
                     
                     elif self.schema_type == 'dbt':
-                        self.load_dbt_schema(yaml_path)
+                        self.load_dbt_yaml(yaml_path)
                     
                     else:
                         raise ValueError(f'Unexpected schema_type: {self.schema_type}')

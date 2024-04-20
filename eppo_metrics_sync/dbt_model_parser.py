@@ -98,7 +98,7 @@ class DbtModelParser():
         self.eppo_fact_source = {
             "name": self.model["name"],
             "sql": f"select * from {self.model['name']}",
-            "timestamp": self.eppo_timestamp,
+            "timestamp_column": self.eppo_timestamp,
             "entities": self.eppo_entities,
             "facts": self.eppo_facts,
             "properties": self.eppo_properties

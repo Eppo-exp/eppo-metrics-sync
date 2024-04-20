@@ -2,7 +2,7 @@
 version: 2
 
 models:
-  - name: revenue
+  - name: revenue_test
     description: "An example revenue model"
     tags:
       - eppo_fact_source
@@ -14,18 +14,18 @@ models:
           - not_null
       - name: anonymous_id
         tags:
-          - eppo_entity:anonymous_user
+          - eppo_entity:Anonymous User
       - name: purchase_timestamp
         description: "The time at which the revenue was created"
         tests:
           - not_null
         tags:
           - eppo_timestamp
-      - name: gross_revenue
+      - name: gross_revenue_test
         description: "The gross revenue amount"
         tags: 
           - eppo_fact
-      - name: revenue_source
-        description: "The gross revenue amount"
+      - name: revenue_source_test
+        description: "The gross revenue source"
         tags: 
           - eppo_property
