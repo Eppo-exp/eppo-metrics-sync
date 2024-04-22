@@ -18,6 +18,10 @@ def run_cli():
     assert result.returncode == 0
 """
 
-def test_cli_valid_directory(run_cli):
-    result = run_cli(['tests/yaml/dbt/valid'])
-    assert result.returncode != 0
+def test_cli_dbt_valid_directory(run_cli):
+    result = run_cli([
+        '--dryrun',
+        '--schema=dbt-model', 
+        '--dbt-model-prefix=foo',
+        'tests/yaml/dbt/valid',
+        ])

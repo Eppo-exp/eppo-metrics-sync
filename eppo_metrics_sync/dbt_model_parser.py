@@ -4,13 +4,13 @@ from itertools import chain
 
 class DbtModelParser():
 
-    def __init__(self, model, dbt_table_prefix):
+    def __init__(self, model, dbt_model_prefix):
         self.model = model
         self.eppo_entities = []
         self.eppo_timestamp = []
         self.eppo_facts = []
         self.eppo_properties = []
-        self.dbt_table_prefix = dbt_table_prefix
+        self.dbt_model_prefix = dbt_model_prefix
     
     def parse_columns(self):
 
@@ -109,7 +109,7 @@ class DbtModelParser():
             , {fact_clause}
             , {property_clause}
         from 
-            {self.dbt_table_prefix}.{self.model['name']}
+            {self.dbt_model_prefix}.{self.model['name']}
         """
 
         self.eppo_fact_source = {

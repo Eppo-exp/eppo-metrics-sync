@@ -16,14 +16,14 @@ class EppoMetricsSync:
         self,
         directory,
         schema_type = 'eppo',
-        dbt_table_prefix = None
+        dbt_model_prefix = None
     ):
         self.directory = directory
         self.fact_sources = []
         self.metrics = []
         self.validation_errors = []
         self.schema_type = schema_type
-        self.dbt_table_prefix = dbt_table_prefix
+        self.dbt_model_prefix = dbt_model_prefix
 
         # temporary: ideally would pull this from Eppo API
         package_root = os.path.dirname(os.path.abspath(__file__))
@@ -42,15 +42,15 @@ class EppoMetricsSync:
 
 
     def load_dbt_yaml(self, path):
-        if not self.dbt_table_prefix:
-            raise ValueError('Must specify dbt_table_prefix when schema_type=dbt')
+        if not self.dbt_model_prefix:
+            raise ValueError('Must specify dbt_model_prefix when schema_type=dbt')
         with open(path, 'r') as yaml_file:
             yaml_data = yaml.safe_load(yaml_file)
         models = yaml_data.get('models')
         if models:
             for model in models:
                 self.fact_sources.append(
-                    DbtModelParser(model, self.dbt_table_prefix).build()
+                    DbtModelParser(model, self.dbt_model_prefix).build()
                 )
 
 
@@ -82,7 +82,7 @@ class EppoMetricsSync:
                                 f"Schema violation in {yaml_path}: \n{valid.error_message}"
                             )
                     
-                    elif self.schema_type == 'dbt':
+                    elif self.schema_type == 'dbt-model':
                         self.load_dbt_yaml(yaml_path)
                     
                     else:
