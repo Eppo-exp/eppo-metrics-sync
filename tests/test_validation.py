@@ -122,3 +122,12 @@ def test_extra_parameter_on_retention_metric():
     res = aggregation_is_valid(test_agg)
     assert res == 'Invalid parameter for retention aggregation: conversion_threshold_days'
 
+def test_count_distinct():
+    test_agg = {
+        'operation': 'count_distinct',
+        'aggregation_timeframe_value': 1,
+        'aggregation_timeframe_unit': 'days'
+    }
+    
+    res = aggregation_is_valid(test_agg)
+    assert res == None
