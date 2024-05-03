@@ -71,14 +71,14 @@ def test_invalid_winsorization_operation():
 
 def test_invalid_aggregation_for_timeframe():
     test_agg = {
-        'operation': 'retention',
+        'operation': 'conversion',
         'aggregation_timeframe_value': 1,
         'aggregation_timeframe_unit': 'days',
-        'retention_threshold_days': 1
+        'conversion_threshold_days': 1
     }
     
     res = aggregation_is_valid(test_agg)
-    assert res == 'Cannot specify aggregation_timeframe_value for operation retention'
+    assert res == 'Cannot specify aggregation_timeframe_value for operation conversion'
 
 
 def test_invalid_timeframe_parameters():
