@@ -1,7 +1,5 @@
 from collections import Counter
 
-simple_aggregation_options = ['sum', 'count', 'distinct_entity']
-
 advanced_aggregation_parameters = [
     'retention_threshold_days',
     'conversion_threshold_days',
@@ -115,6 +113,11 @@ def aggregation_is_valid(aggregation):
 
     error_message = []
 
+    if aggregation['operation'] not in ['sum', 'count', 'count_distinct', 'distinct_entity', 'threshold', 'retention', 'conversion']:
+        error_message.append(
+            'Invalid aggregation operation: ' + aggregation['operation']
+        )
+
     # can only winsorize sum or count metrics
     if aggregation['operation'] not in ['sum', 'count']:
         if [name for name in winsorization_parameters if name in aggregation]:
@@ -130,7 +133,7 @@ def aggregation_is_valid(aggregation):
         )
 
     # only set timeframe_parameters on a some operation types
-    if aggregation['operation'] not in simple_aggregation_options:
+    if aggregation['operation'] in ['conversion']:
         matched = [p for p in timeframe_parameters if p in aggregation]
         if matched:
             error_message.append(
@@ -138,7 +141,7 @@ def aggregation_is_valid(aggregation):
             )
 
     # can't specify advanced aggregation parameters for simple aggregation types
-    if aggregation['operation'] in simple_aggregation_options:
+    if aggregation['operation'] not in ['threshold', 'retention', 'conversion']:
         matched = [p for p in advanced_aggregation_parameters if p in aggregation]
         if matched:
             error_message.append(

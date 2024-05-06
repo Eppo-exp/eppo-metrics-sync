@@ -246,7 +246,7 @@
                             },
                             "operation": {
                                 "description": "How to aggregate fact",
-                                "enum": ["sum", "count", "distinct_entity"]
+                                "enum": ["sum", "count", "distinct_entity", "count_distinct"]
                             },
                             "filters": {
                                 "description": "Optional fact property filters to apply",
