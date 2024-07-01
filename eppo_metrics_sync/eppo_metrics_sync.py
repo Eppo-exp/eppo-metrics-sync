@@ -1,15 +1,19 @@
-import json, yaml, jsonschema, os, logging, requests
+import json
+import jsonschema
+import os
+import requests
+import yaml
 
 from eppo_metrics_sync.validation import (
-    unique_names, 
-    valid_fact_references, 
-    aggregation_is_valid,
+    unique_names,
+    valid_fact_references,
     metric_aggregation_is_valid
 )
 
 from eppo_metrics_sync.dbt_model_parser import DbtModelParser
 
 API_ENDPOINT = 'https://eppo.cloud/api/v1/metrics/sync'
+
 
 class EppoMetricsSync:
     def __init__(
@@ -30,7 +34,6 @@ class EppoMetricsSync:
         schema_path = os.path.join(package_root, 'schema', 'eppo_metric_schema.json')
         with open(schema_path) as schema_file:
             self.schema = json.load(schema_file)
-    
 
     def load_eppo_yaml(self, path):
         with open(path, 'r') as yaml_file:
@@ -39,7 +42,6 @@ class EppoMetricsSync:
                 self.fact_sources.extend(yaml_data['fact_sources'])
             if 'metrics' in yaml_data:
                 self.metrics.extend(yaml_data['metrics'])
-
 
     def load_dbt_yaml(self, path):
         if not self.dbt_model_prefix:
@@ -53,19 +55,20 @@ class EppoMetricsSync:
                     DbtModelParser(model, self.dbt_model_prefix).build()
                 )
 
+    def yaml_is_valid(self, yaml_path):
+        """
+        Validate a single YAML file against the schema
+
+        """
+        with open(yaml_path, 'r') as yaml_file:
+            data = yaml.safe_load(yaml_file)
+            try:
+                jsonschema.validate(data, self.schema)
+                return {"passed": True}
+            except jsonschema.exceptions.ValidationError as e:
+                return {"passed": False, "error_message": e}
 
     def read_yaml_files(self):
-
-        # Validate a single YAML file against the schema
-        def yaml_is_valid(yaml_path):
-            with open(yaml_path, 'r') as yaml_file:
-                data = yaml.safe_load(yaml_file)
-                try:
-                    jsonschema.validate(data, self.schema)
-                    return {"passed": True}
-                except jsonschema.exceptions.ValidationError as e:
-                    return {"passed": False, "error_message": e}
-
         # Recursively scan the directory for YAML files and load valid ones
         for root, _, files in os.walk(self.directory):
             for file in files:
@@ -88,19 +91,16 @@ class EppoMetricsSync:
                     else:
                         raise ValueError(f'Unexpected schema_type: {self.schema_type}')
                         
-
-        
         if len(self.fact_sources) == 0 and len(self.metrics) == 0:
             raise ValueError(
                 'No valid yaml files found. ' + ', '.join(self.validation_errors)
             )
 
-
     def validate(self):
 
-        if(len(self.fact_sources) == 0 and len(self.metrics) == 0):
+        if len(self.fact_sources) == 0 and len(self.metrics) == 0:
             raise ValueError('No fact sources or metrics found, did you call eppo_metrics.read_yaml_files()?')
-        
+
         unique_names(self)
         valid_fact_references(self)
         metric_aggregation_is_valid(self)
@@ -113,7 +113,6 @@ class EppoMetricsSync:
 
         return True
 
-
     def sync(self):
         self.read_yaml_files()
         self.validate()
@@ -121,16 +120,16 @@ class EppoMetricsSync:
         api_key = os.getenv('EPPO_API_KEY')
         if not api_key:
             raise Exception('EPPO_API_KEY not set in environment variables. Please set and try again')
-        
+
         sync_tag = os.getenv('EPPO_SYNC_TAG')
         if not api_key:
             raise Exception('EPPO_SYNC_TAG not set in environment variables. Please set and try again')
-        
+
         headers = {"X-Eppo-Token": api_key}
         payload = {
             "sync_tag": sync_tag,
-            "fact_sources" : self.fact_sources,
-            "metrics" : self.metrics
+            "fact_sources": self.fact_sources,
+            "metrics": self.metrics
         }
 
         response = requests.post(API_ENDPOINT, json=payload, headers=headers)

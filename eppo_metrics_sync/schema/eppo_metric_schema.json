@@ -152,7 +152,7 @@
                             },
                             "operation": {
                                 "description": "Which aggregation to apply to the fact",
-                                "enum": ["sum", "count", "distinct_entity", "threshold", "conversion", "retention"]
+                                "enum": ["sum", "count", "distinct_entity", "threshold", "conversion", "retention", "count_distinct"]
                             },
                             "filters": {
                                 "description": "Optional fact property filters to apply",
@@ -192,9 +192,9 @@
                                 "description": "Only used if operation = conversion",
                                 "type": "object",
                                 "additionalProperties": false,
-                                "required": ["comparions_operator", "aggregation_type", "breach_value"],
+                                "required": ["comparison_operator", "aggregation_type", "breach_value"],
                                 "properties": {
-                                    "comparions_operator": {
+                                    "comparison_operator": {
                                         "description": "One of gt or gte",
                                         "enum": ["gt", "gte"]
                                     },
@@ -246,7 +246,7 @@
                             },
                             "operation": {
                                 "description": "How to aggregate fact",
-                                "enum": ["sum", "count", "distinct_entity"]
+                                "enum": ["sum", "count", "distinct_entity", "count_distinct"]
                             },
                             "filters": {
                                 "description": "Optional fact property filters to apply",
