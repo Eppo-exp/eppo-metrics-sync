@@ -77,7 +77,7 @@ class EppoMetricsSync:
                     yaml_path = os.path.join(root, file)
 
                     if self.schema_type == 'eppo':
-                        valid = yaml_is_valid(yaml_path)
+                        valid = self.yaml_is_valid(yaml_path)
                         if valid['passed']:
                             self.load_eppo_yaml(yaml_path)
                         else:
