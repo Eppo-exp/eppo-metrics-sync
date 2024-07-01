@@ -43,7 +43,7 @@ class EppoMetricsSync:
 
     def load_dbt_yaml(self, path):
         if not self.dbt_model_prefix:
-            raise ValueError('Must specify dbt_model_prefix when schema_type=dbt')
+            raise ValueError('Must specify dbt_model_prefix when schema_type=dbt-model')
         with open(path, 'r') as yaml_file:
             yaml_data = yaml.safe_load(yaml_file)
         models = yaml_data.get('models')

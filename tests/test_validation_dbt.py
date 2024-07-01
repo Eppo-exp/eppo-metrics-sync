@@ -14,7 +14,7 @@ def test_invalid_entity_tag():
         dbt_model_prefix = 'foo'
     )
     with pytest.raises(
-        ValueError, 
+        AssertionError, 
         match = "Invalid entity tag eppo_entity:anonymous_user:foo in model revenue"
         ):
         eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "/invalid_entity_tag.yml")
