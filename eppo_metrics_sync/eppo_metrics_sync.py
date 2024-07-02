@@ -11,6 +11,8 @@ from eppo_metrics_sync.validation import (
 )
 
 from eppo_metrics_sync.dbt_model_parser import DbtModelParser
+from eppo_metrics_sync.helper import load_yaml
+
 
 API_ENDPOINT = 'https://eppo.cloud/api/v1/metrics/sync'
 
@@ -35,38 +37,36 @@ class EppoMetricsSync:
         with open(schema_path) as schema_file:
             self.schema = json.load(schema_file)
 
+
     def load_eppo_yaml(self, path):
-        with open(path, 'r') as yaml_file:
-            yaml_data = yaml.safe_load(yaml_file)
-            if 'fact_sources' in yaml_data:
-                self.fact_sources.extend(yaml_data['fact_sources'])
-            if 'metrics' in yaml_data:
-                self.metrics.extend(yaml_data['metrics'])
+        yaml_data = load_yaml(path)
+        if 'fact_sources' in yaml_data:
+            self.fact_sources.extend(yaml_data['fact_sources'])
+        if 'metrics' in yaml_data:
+            self.metrics.extend(yaml_data['metrics'])
 
     def load_dbt_yaml(self, path):
         if not self.dbt_model_prefix:
             raise ValueError('Must specify dbt_model_prefix when schema_type=dbt-model')
-        with open(path, 'r') as yaml_file:
-            yaml_data = yaml.safe_load(yaml_file)
+        yaml_data = load_yaml(path)
         models = yaml_data.get('models')
         if models:
             for model in models:
-                self.fact_sources.append(
-                    DbtModelParser(model, self.dbt_model_prefix).build()
-                )
+                dbt_model_parser = DbtModelParser(model, self.dbt_model_prefix).build()
+                if dbt_model_parser:
+                    self.fact_sources.append(dbt_model_parser)
 
     def yaml_is_valid(self, yaml_path):
         """
         Validate a single YAML file against the schema
 
         """
-        with open(yaml_path, 'r') as yaml_file:
-            data = yaml.safe_load(yaml_file)
-            try:
-                jsonschema.validate(data, self.schema)
-                return {"passed": True}
-            except jsonschema.exceptions.ValidationError as e:
-                return {"passed": False, "error_message": e}
+        data = load_yaml(yaml_path)
+        try:
+            jsonschema.validate(data, self.schema)
+            return {"passed": True}
+        except jsonschema.exceptions.ValidationError as e:
+            return {"passed": False, "error_message": e}
 
     def read_yaml_files(self):
         # Recursively scan the directory for YAML files and load valid ones
