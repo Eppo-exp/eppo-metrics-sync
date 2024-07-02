@@ -61,6 +61,20 @@ def test_overlapping_tags():
         ):
         eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "invalid/overlapping_tags.yml")
 
+
+def test_model_is_not_a_dictionary():
+
+    eppo_metrics_sync = EppoMetricsSync(
+        directory = None, 
+        schema_type = 'dbt-model',
+        dbt_model_prefix = 'foo'
+    )
+    with pytest.raises(
+        ValueError, 
+        match = 'Expected model to be a dictionary, got model = r'
+        ):
+        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "invalid/model_is_not_a_dictionary.yml")
+
 # test that the package handles yml without 'models' member gracefully
 def test_no_model_tag():
 

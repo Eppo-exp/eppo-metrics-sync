@@ -1,7 +1,6 @@
 from collections import Counter
 from itertools import chain
 
-
 class DbtModelParser():
 
     def __init__(self, model, dbt_model_prefix):
@@ -138,3 +137,5 @@ class DbtModelParser():
                 self.validate()
                 self.format()
                 return self.eppo_fact_source
+        else:
+            raise ValueError(f"Expected model to be a dictionary, got model = {self.model}")

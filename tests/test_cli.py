@@ -13,10 +13,6 @@ def run_cli():
         return result
     return runner
 
-"""def test_cli_with_valid_directory(run_cli):
-    result = run_cli(['tests/yaml/valid'])
-    assert result.returncode == 0
-"""
 def test_cli_dryrun_option(run_cli):
     result = run_cli(['tests/yaml/valid', '--dryrun'])
     assert result.returncode == 0

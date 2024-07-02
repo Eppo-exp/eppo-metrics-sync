@@ -11,19 +11,11 @@ from eppo_metrics_sync.validation import (
 )
 
 from eppo_metrics_sync.dbt_model_parser import DbtModelParser
+from eppo_metrics_sync.helper import load_yaml
+
 
 API_ENDPOINT = 'https://eppo.cloud/api/v1/metrics/sync'
 
-
-def _safer_load(path):
-        try:
-            with open(path, 'r') as file:
-                content = yaml.safe_load(file)
-                return content
-        except yaml.YAMLError as e:
-            raise ValueError(f"Error loading YAML file '{path}': {e}")
-        except Exception as e:
-            raise ValueError(f"Unexpected error loading file '{path}': {e}")
 
 class EppoMetricsSync:
     def __init__(
@@ -47,7 +39,7 @@ class EppoMetricsSync:
 
 
     def load_eppo_yaml(self, path):
-        yaml_data = _safer_load(path)
+        yaml_data = load_yaml(path)
         if 'fact_sources' in yaml_data:
             self.fact_sources.extend(yaml_data['fact_sources'])
         if 'metrics' in yaml_data:
@@ -56,7 +48,7 @@ class EppoMetricsSync:
     def load_dbt_yaml(self, path):
         if not self.dbt_model_prefix:
             raise ValueError('Must specify dbt_model_prefix when schema_type=dbt-model')
-        yaml_data = _safer_load(path)
+        yaml_data = load_yaml(path)
         models = yaml_data.get('models')
         if models:
             for model in models:
@@ -69,13 +61,12 @@ class EppoMetricsSync:
         Validate a single YAML file against the schema
 
         """
-        with open(yaml_path, 'r') as yaml_file:
-            data = yaml.safe_load(yaml_file)
-            try:
-                jsonschema.validate(data, self.schema)
-                return {"passed": True}
-            except jsonschema.exceptions.ValidationError as e:
-                return {"passed": False, "error_message": e}
+        data = load_yaml(yaml_path)
+        try:
+            jsonschema.validate(data, self.schema)
+            return {"passed": True}
+        except jsonschema.exceptions.ValidationError as e:
+            return {"passed": False, "error_message": e}
 
     def read_yaml_files(self):
         # Recursively scan the directory for YAML files and load valid ones
