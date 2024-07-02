@@ -44,14 +44,14 @@ class DbtModelParser():
                 self.eppo_facts.append({
                     "name": column["name"],
                     "column": column["name"],
-                    "description": column["description"]
+                    "description": column.get("description", "")
                 })
             
             if 'eppo_property' in tags:
                 self.eppo_properties.append({
                     "name": column["name"],
                     "column": column["name"],
-                    "description": column["description"]
+                    "description": column.get("description", "")
                 })
 
     
@@ -131,7 +131,10 @@ class DbtModelParser():
         }
     
     def build(self):
-        self.parse_columns()
-        self.validate()
-        self.format()
-        return self.eppo_fact_source
+        if isinstance(self.model, dict):
+            model_tags = self.model.get('tags', [])
+            if 'eppo_fact_source' in model_tags:
+                self.parse_columns()
+                self.validate()
+                self.format()
+                return self.eppo_fact_source

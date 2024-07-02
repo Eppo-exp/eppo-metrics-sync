@@ -15,6 +15,16 @@ from eppo_metrics_sync.dbt_model_parser import DbtModelParser
 API_ENDPOINT = 'https://eppo.cloud/api/v1/metrics/sync'
 
 
+def _safer_load(path):
+        try:
+            with open(path, 'r') as file:
+                content = yaml.safe_load(file)
+                return content
+        except yaml.YAMLError as e:
+            raise ValueError(f"Error loading YAML file '{path}': {e}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error loading file '{path}': {e}")
+
 class EppoMetricsSync:
     def __init__(
         self,
@@ -35,25 +45,24 @@ class EppoMetricsSync:
         with open(schema_path) as schema_file:
             self.schema = json.load(schema_file)
 
+
     def load_eppo_yaml(self, path):
-        with open(path, 'r') as yaml_file:
-            yaml_data = yaml.safe_load(yaml_file)
-            if 'fact_sources' in yaml_data:
-                self.fact_sources.extend(yaml_data['fact_sources'])
-            if 'metrics' in yaml_data:
-                self.metrics.extend(yaml_data['metrics'])
+        yaml_data = _safer_load(path)
+        if 'fact_sources' in yaml_data:
+            self.fact_sources.extend(yaml_data['fact_sources'])
+        if 'metrics' in yaml_data:
+            self.metrics.extend(yaml_data['metrics'])
 
     def load_dbt_yaml(self, path):
         if not self.dbt_model_prefix:
             raise ValueError('Must specify dbt_model_prefix when schema_type=dbt-model')
-        with open(path, 'r') as yaml_file:
-            yaml_data = yaml.safe_load(yaml_file)
+        yaml_data = _safer_load(path)
         models = yaml_data.get('models')
         if models:
             for model in models:
-                self.fact_sources.append(
-                    DbtModelParser(model, self.dbt_model_prefix).build()
-                )
+                dbt_model_parser = DbtModelParser(model, self.dbt_model_prefix).build()
+                if dbt_model_parser:
+                    self.fact_sources.append(dbt_model_parser)
 
     def yaml_is_valid(self, yaml_path):
         """

@@ -3,7 +3,7 @@ import pytest
 from eppo_metrics_sync.validation import unique_names, valid_fact_references, aggregation_is_valid
 from eppo_metrics_sync.eppo_metrics_sync import EppoMetricsSync
 
-test_yaml_dir = "tests/yaml/dbt/invalid"
+test_yaml_dir = "tests/yaml/dbt/"
 
 
 def test_invalid_entity_tag():
@@ -17,7 +17,7 @@ def test_invalid_entity_tag():
         AssertionError, 
         match = "Invalid entity tag eppo_entity:anonymous_user:foo in model revenue"
         ):
-        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "/invalid_entity_tag.yml")
+        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "invalid/invalid_entity_tag.yml")
 
 
 def test_missing_entity():
@@ -31,7 +31,7 @@ def test_missing_entity():
         ValueError, 
         match = 'At least 1 column must have tag "eppo_entity:<entity_name>"'
         ):
-        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "/missing_entity.yml")
+        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "invalid/missing_entity.yml")
     
 
 def test_missing_timestamp():
@@ -45,7 +45,7 @@ def test_missing_timestamp():
         ValueError, 
         match = 'Exactly 1 column must be have tag "eppo_timestamp"'
         ):
-        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "/missing_timestamp.yml")
+        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "invalid/missing_timestamp.yml")
 
   
 def test_overlapping_tags():
@@ -59,9 +59,9 @@ def test_overlapping_tags():
         ValueError, 
         match = 'The following columns had tags to multiple Eppo fields: gross_revenue'
         ):
-        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "/overlapping_tags.yml")
+        eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "invalid/overlapping_tags.yml")
 
-# test that package handles yml without 'models' member gracefully
+# test that the package handles yml without 'models' member gracefully
 def test_no_model_tag():
 
     eppo_metrics_sync = EppoMetricsSync(
@@ -69,4 +69,15 @@ def test_no_model_tag():
         schema_type = 'dbt-model',
         dbt_model_prefix = 'foo'
     )
-    eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "/no_model_tag.yml")
+    eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "valid/no_model_property.yml")
+
+
+# test that the package handles dbt models without eppo tags gracefully
+def test_no_model_tag():
+
+    eppo_metrics_sync = EppoMetricsSync(
+        directory = None, 
+        schema_type = 'dbt-model',
+        dbt_model_prefix = 'foo'
+    )
+    eppo_metrics_sync.load_dbt_yaml(path = test_yaml_dir + "valid/no_dbt_tags.yml")
