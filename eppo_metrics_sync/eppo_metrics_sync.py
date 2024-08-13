@@ -2,7 +2,6 @@ import json
 import jsonschema
 import os
 import requests
-import yaml
 
 from eppo_metrics_sync.validation import (
     unique_names,
@@ -13,16 +12,16 @@ from eppo_metrics_sync.validation import (
 from eppo_metrics_sync.dbt_model_parser import DbtModelParser
 from eppo_metrics_sync.helper import load_yaml
 
-
 API_ENDPOINT = 'https://eppo.cloud/api/v1/metrics/sync'
 
 
 class EppoMetricsSync:
     def __init__(
-        self,
-        directory,
-        schema_type = 'eppo',
-        dbt_model_prefix = None
+            self,
+            directory,
+            schema_type='eppo',
+            dbt_model_prefix=None,
+            sync_prefix=None
     ):
         self.directory = directory
         self.fact_sources = []
@@ -30,13 +29,13 @@ class EppoMetricsSync:
         self.validation_errors = []
         self.schema_type = schema_type
         self.dbt_model_prefix = dbt_model_prefix
+        self.sync_prefix = sync_prefix
 
         # temporary: ideally would pull this from Eppo API
         package_root = os.path.dirname(os.path.abspath(__file__))
         schema_path = os.path.join(package_root, 'schema', 'eppo_metric_schema.json')
         with open(schema_path) as schema_file:
             self.schema = json.load(schema_file)
-
 
     def load_eppo_yaml(self, path):
         yaml_data = load_yaml(path)
@@ -84,17 +83,24 @@ class EppoMetricsSync:
                             self.validation_errors.append(
                                 f"Schema violation in {yaml_path}: \n{valid.error_message}"
                             )
-                    
+
                     elif self.schema_type == 'dbt-model':
                         self.load_dbt_yaml(yaml_path)
-                    
+
                     else:
                         raise ValueError(f'Unexpected schema_type: {self.schema_type}')
-                        
+
         if len(self.fact_sources) == 0 and len(self.metrics) == 0:
             raise ValueError(
                 'No valid yaml files found. ' + ', '.join(self.validation_errors)
             )
+
+    def _add_sync_prefix(self):
+        for source in self.fact_sources:
+            source['name'] = f"[{self.sync_prefix}] {source['name']}"
+
+        for metric in self.metrics:
+            metric['name'] = f"[{self.sync_prefix}] {metric['name']}"
 
     def validate(self):
 
@@ -113,15 +119,23 @@ class EppoMetricsSync:
 
         return True
 
+    def _determine_sync_tag(self):
+        if self.sync_prefix is not None:
+            return self.sync_prefix
+
+        os.getenv('EPPO_SYNC_TAG')
+
     def sync(self):
         self.read_yaml_files()
+        if self.sync_prefix is not None:
+            self._add_sync_prefix()
         self.validate()
 
         api_key = os.getenv('EPPO_API_KEY')
         if not api_key:
             raise Exception('EPPO_API_KEY not set in environment variables. Please set and try again')
 
-        sync_tag = os.getenv('EPPO_SYNC_TAG')
+        sync_tag = self._determine_sync_tag()
         if not api_key:
             raise Exception('EPPO_SYNC_TAG not set in environment variables. Please set and try again')
 
