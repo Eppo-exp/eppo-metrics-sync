@@ -82,7 +82,7 @@ class EppoMetricsSync:
                             self.load_eppo_yaml(yaml_path)
                         else:
                             self.validation_errors.append(
-                                f"Schema violation in {yaml_path}: \n{valid.error_message}"
+                                f"Schema violation in {yaml_path}: \n{valid['error_message']}"
                             )
                     
                     elif self.schema_type == 'dbt-model':

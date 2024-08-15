@@ -216,13 +216,17 @@
                                     }
                                 }
                             },
-                            "aggregation_timeframe_value": {
-                                "description": "How many timeframe units since assignment to include (optional)",
-                                "value": "number"
+                            "aggregation_timeframe_start_value": {
+                                "description": "The start of the timeframe window defined in number of timeframe units following assignment (optional)",
+                                "type": "number"
+                            },
+                            "aggregation_timeframe_end_value": {
+                                "description": "The end of the timeframe window defined in number of timeframe units following assignment (optional)",
+                                "type": "number"
                             },
                             "aggregation_timeframe_unit": {
                                 "description": "What time unit to use: minutes, hours, days, or weeks (optional)",
-                                "enum": ["minutes", "hours", "days", "weeks"]
+                                "enum": ["minutes", "hours", "days", "weeks", "calendar_days"]
                             },
                             "winsorization_lower_percentile": {
                                 "description": "Percentile at which to clip aggregated metrics (optional)",
@@ -274,13 +278,17 @@
                                     }
                                 }
                             },
-                            "aggregation_timeframe_value": {
-                                "description": "How many timeframe units since assignment to include (optional)",
+                            "aggregation_timeframe_start_value": {
+                                "description": "The start of the timeframe window defined in number of timeframe units following assignment (optional)",
+                                "type": "number"
+                            },
+                            "aggregation_timeframe_end_value": {
+                                "description": "The end of the timeframe window defined in number of timeframe units following assignment (optional)",
                                 "type": "number"
                             },
                             "aggregation_timeframe_unit": {
                                 "description": "What time unit to use: minutes, hours, days, or weeks (optional)",
-                                "enum": ["minutes", "hours", "days", "weeks"]
+                                "enum": ["minutes", "hours", "days", "weeks", "calendar_days"]
                             },
                             "winsorization_lower_percentile": {
                                 "description": "Percentile at which to clip aggregated metrics (optional)",

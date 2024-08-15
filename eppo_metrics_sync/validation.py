@@ -12,7 +12,8 @@ winsorization_parameters = [
 ]
 
 timeframe_parameters = [
-    'aggregation_timeframe_value',
+    'aggregation_timeframe_start_value',
+    'aggregation_timeframe_end_value',
     'aggregation_timeframe_unit'
 ]
 
@@ -27,7 +28,6 @@ def check_for_duplicated_names(payload, names, object_name):
 
 
 def unique_names(payload):
-    
     fact_source_names = []
     fact_names = []
     fact_property_names = []
@@ -35,7 +35,7 @@ def unique_names(payload):
     for fact_source in payload.fact_sources:
         fact_source_names.append(fact_source['name'])
         fact_names.extend([f['name'] for f in fact_source['facts']])
-        if('properties' in fact_source):
+        if ('properties' in fact_source):
             fact_property_names.extend(
                 [f['name'] for f in fact_source['properties']]
             )
@@ -45,14 +45,13 @@ def unique_names(payload):
     check_for_duplicated_names(payload, fact_source_names, 'Fact source')
     check_for_duplicated_names(payload, fact_names, 'Fact')
     # TODO: check for distinct names within a given fact source
-    #check_for_duplicated_names(payload, fact_property_names, 'Fact property')
+    # check_for_duplicated_names(payload, fact_property_names, 'Fact property')
     check_for_duplicated_names(payload, metric_names, 'Metric')
-    
+
     return True
 
 
 def valid_fact_references(payload):
-
     fact_references = set()
     for metric in payload.metrics:
         fact_references.add(metric['numerator']['fact_name'])
@@ -66,7 +65,7 @@ def valid_fact_references(payload):
 
     if fact_references.issubset(set(fact_names)) == False:
         payload.validation_errors.append(
-            "Invalid fact reference(s): " + 
+            "Invalid fact reference(s): " +
             str(', '.join(fact_references.difference(fact_names)))
         )
 
@@ -79,7 +78,7 @@ def metric_aggregation_is_valid(payload):
             payload.validation_errors.append(
                 f"{m['name']} has invalid numerator: {numerator_error}"
             )
-        
+
         if 'denominator' in m:
             denominator_error = aggregation_is_valid(m['denominator'])
             if denominator_error:
@@ -89,11 +88,11 @@ def metric_aggregation_is_valid(payload):
 
 
 def distinct_advanced_aggregation_parameter_set(
-        aggregation, 
-        operation, 
+        aggregation,
+        operation,
         aggregation_parameter,
-        error_message 
-    ):
+        error_message
+):
     if aggregation['operation'] == operation:
         matched = [p for p in advanced_aggregation_parameters if p in aggregation]
         if len(matched) == 0:
@@ -110,10 +109,10 @@ def distinct_advanced_aggregation_parameter_set(
 
 
 def aggregation_is_valid(aggregation):
-
     error_message = []
 
-    if aggregation['operation'] not in ['sum', 'count', 'count_distinct', 'distinct_entity', 'threshold', 'retention', 'conversion']:
+    if aggregation['operation'] not in ['sum', 'count', 'count_distinct', 'distinct_entity', 'threshold', 'retention',
+                                        'conversion']:
         error_message.append(
             'Invalid aggregation operation: ' + aggregation['operation']
         )
@@ -124,12 +123,19 @@ def aggregation_is_valid(aggregation):
             error_message.append(
                 'Cannot winsorize a metric with operation ' + aggregation['operation']
             )
-        
-    # either 0 or 2 of timeframe_parameters must be set
-    if len([name for name in timeframe_parameters if name in aggregation]) == 1:
+
+    # The aggregation_timeframe_unit must be specified if timeframe parameters are set
+    included_timeframe_parameters = [name for name in timeframe_parameters if name in aggregation]
+
+    if 'aggregation_timeframe_value' in aggregation:
         error_message.append(
-            'Either both or neither aggregation_timeframe_value and ' +
-            'aggregation_timeframe_unit must be set'
+            'The aggregation_timeframe_value parameter has been deprecated. Please use aggregation_timeframe_end instead.'
+        )
+
+    timeframe_unit_specified = 'aggregation_timeframe_unit' in included_timeframe_parameters
+    if len(included_timeframe_parameters) > 0 and not timeframe_unit_specified:
+        error_message.append(
+            'The aggregation_timeframe_unit must be set to use timeframe parameters.'
         )
 
     # only set timeframe_parameters on a some operation types
@@ -154,20 +160,20 @@ def aggregation_is_valid(aggregation):
         pass
 
     distinct_advanced_aggregation_parameter_set(
-        aggregation, 
-        'retention', 
+        aggregation,
+        'retention',
         'retention_threshold_days',
         error_message
     )
     distinct_advanced_aggregation_parameter_set(
-        aggregation, 
-        'conversion', 
+        aggregation,
+        'conversion',
         'conversion_threshold_days',
         error_message
     )
     distinct_advanced_aggregation_parameter_set(
-        aggregation, 
-        'threshold', 
+        aggregation,
+        'threshold',
         'threshold_metric_settings',
         error_message
     )
@@ -176,4 +182,3 @@ def aggregation_is_valid(aggregation):
         return '\n'.join(error_message)
     else:
         return None
-    
