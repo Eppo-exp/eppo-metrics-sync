@@ -123,7 +123,7 @@ class EppoMetricsSync:
         if self.sync_prefix is not None:
             return self.sync_prefix
 
-        os.getenv('EPPO_SYNC_TAG')
+        return os.getenv('EPPO_SYNC_TAG')
 
     def sync(self):
         self.read_yaml_files()
