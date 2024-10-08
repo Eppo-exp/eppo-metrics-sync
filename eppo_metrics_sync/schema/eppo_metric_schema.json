@@ -140,6 +140,10 @@
                         "description": "URL to use for 'Open in GitHub' in Eppo UI (optional)",
                         "type": "string"
                     },
+                    "guardrail_cutoff": {
+                        "description": "URL to use for 'Open in GitHub' in Eppo UI (optional)",
+                        "type": "number"
+                    },
                     "numerator": {
                         "description": "Specify how the numerator of this metric should be aggregated",
                         "type": "object",
