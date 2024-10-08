@@ -140,6 +140,10 @@
                         "description": "URL to use for 'Open in GitHub' in Eppo UI (optional)",
                         "type": "string"
                     },
+                    "guardrail_cutoff": {
+                        "description": "If a metric is expected to increase, this value should be negative, to warn when the metric is decreasing by more than this value.",
+                        "type": "number"
+                    },
                     "numerator": {
                         "description": "Specify how the numerator of this metric should be aggregated",
                         "type": "object",
