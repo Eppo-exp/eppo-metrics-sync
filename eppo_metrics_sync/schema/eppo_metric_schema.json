@@ -137,11 +137,11 @@
                         "type": "number"
                     },
                     "reference_url": {
-                        "description": "URL to use for 'Open in GitHub' in Eppo UI (optional)",
+                        "description": "URL to use for 'Open in GitHub' in Eppo UI (optional)",                
                         "type": "string"
                     },
                     "guardrail_cutoff": {
-                        "description": "URL to use for 'Open in GitHub' in Eppo UI (optional)",
+                        "description": "If a metric is expected to increase, this value should be negative, to warn when the metric is decreasing by more than this value.",
                         "type": "number"
                     },
                     "numerator": {
