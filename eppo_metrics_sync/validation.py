@@ -94,9 +94,9 @@ def valid_guardrail_cutoff_signs(payload):
             facts[fact['name']] = fact
 
     for m in payload.metrics:
-        numerator_fact = facts[m['numerator']['fact_name']]
-        if is_guardrail_cutoff_exist(m) and 'desired_change' in numerator_fact:
-            error = is_valid_guardrail_cutoff_sign(m, numerator_fact)
+        numerator_fact_name = m['numerator']['fact_name']
+        if is_guardrail_cutoff_exist(m) and numerator_fact_name in facts and 'desired_change' in facts[numerator_fact_name]:
+            error = is_valid_guardrail_cutoff_sign(m, facts[numerator_fact_name])
             if error:
                 payload.validation_errors.append(
                     f"{m['name']} is having invalid guardrail_cutoff sign: {error}"
