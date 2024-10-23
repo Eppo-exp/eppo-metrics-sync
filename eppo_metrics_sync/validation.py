@@ -87,6 +87,33 @@ def metric_aggregation_is_valid(payload):
                 )
 
 
+def valid_guardrail_cutoff_signs(payload):
+    facts = dict()
+    for fact_source in payload.fact_sources:
+        for fact in fact_source['facts']:
+            facts[fact['name']] = fact
+
+    for m in payload.metrics:
+        numerator_fact = facts[m['numerator']['fact_name']]
+        if is_guardrail_cutoff_exist(m) and 'desired_change' in numerator_fact:
+            error = is_valid_guardrail_cutoff_sign(m, numerator_fact)
+            if error:
+                payload.validation_errors.append(
+                    f"{m['name']} is having invalid guardrail_cutoff sign: {error}"
+                )
+
+
+def is_valid_guardrail_cutoff_sign(metric, numerator_fact):
+    if numerator_fact['desired_change'] == 'decrease' and metric['guardrail_cutoff'] < 0:
+        return f"guardrail_cutoff value should be positive"
+    elif numerator_fact['desired_change'] == 'increase' and metric['guardrail_cutoff'] > 0:
+        return f"guardrail_cutoff value should be negative"
+
+
+def is_guardrail_cutoff_exist(metric):
+    return 'is_guardrail' in metric and metric['is_guardrail'] and 'guardrail_cutoff' in metric
+
+
 def distinct_advanced_aggregation_parameter_set(
         aggregation,
         operation,
