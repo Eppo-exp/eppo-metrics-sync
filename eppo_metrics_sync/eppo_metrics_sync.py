@@ -6,7 +6,8 @@ import requests
 from eppo_metrics_sync.validation import (
     unique_names,
     valid_fact_references,
-    metric_aggregation_is_valid
+    metric_aggregation_is_valid,
+    valid_guardrail_cutoff_signs
 )
 
 from eppo_metrics_sync.dbt_model_parser import DbtModelParser
@@ -110,6 +111,7 @@ class EppoMetricsSync:
         unique_names(self)
         valid_fact_references(self)
         metric_aggregation_is_valid(self)
+        valid_guardrail_cutoff_signs(self)
 
         if self.validation_errors:
             error_count = len(self.validation_errors)
