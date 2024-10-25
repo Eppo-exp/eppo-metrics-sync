@@ -137,3 +137,8 @@ def test_last_value():
 def test_first_value():
     res = aggregation_is_valid({'operation': 'first_value'})
     assert res == None
+
+def test_valid_yaml():
+    eppo_metrics_sync = EppoMetricsSync(directory=None)
+    eppo_metrics_sync.load_eppo_yaml(path='tests/yaml/valid/purchases.yaml')
+    eppo_metrics_sync.validate()

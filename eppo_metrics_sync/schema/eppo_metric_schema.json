@@ -156,7 +156,7 @@
                             },
                             "operation": {
                                 "description": "Which aggregation to apply to the fact",
-                                "enum": ["sum", "count", "distinct_entity", "threshold", "conversion", "retention", "count_distinct"]
+                                "enum": ["sum", "count", "distinct_entity", "threshold", "conversion", "retention", "count_distinct", "last_value", "first_value"]
                             },
                             "filters": {
                                 "description": "Optional fact property filters to apply",
@@ -254,7 +254,7 @@
                             },
                             "operation": {
                                 "description": "How to aggregate fact",
-                                "enum": ["sum", "count", "distinct_entity", "count_distinct"]
+                                "enum": ["sum", "count", "distinct_entity", "count_distinct", "last_value", "first_value"]
                             },
                             "filters": {
                                 "description": "Optional fact property filters to apply",
