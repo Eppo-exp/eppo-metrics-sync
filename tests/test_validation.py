@@ -129,3 +129,11 @@ def test_count_distinct():
 
     res = aggregation_is_valid(test_agg)
     assert res == None
+
+def test_last_value():
+    res = aggregation_is_valid({'operation': 'last_value'})
+    assert res == None
+
+def test_first_value():
+    res = aggregation_is_valid({'operation': 'first_value'})
+    assert res == None
