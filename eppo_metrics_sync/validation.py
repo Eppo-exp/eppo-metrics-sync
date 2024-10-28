@@ -112,13 +112,13 @@ def aggregation_is_valid(aggregation):
     error_message = []
 
     if aggregation['operation'] not in ['sum', 'count', 'count_distinct', 'distinct_entity', 'threshold', 'retention',
-                                        'conversion']:
+                                        'conversion', 'last_value', 'first_value']:
         error_message.append(
             'Invalid aggregation operation: ' + aggregation['operation']
         )
 
     # can only winsorize sum or count metrics
-    if aggregation['operation'] not in ['sum', 'count']:
+    if aggregation['operation'] not in ['sum', 'count', 'last_value', 'first_value']:
         if [name for name in winsorization_parameters if name in aggregation]:
             error_message.append(
                 'Cannot winsorize a metric with operation ' + aggregation['operation']

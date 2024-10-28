@@ -52,4 +52,11 @@ metrics:
         operation: equals
         values:
           - "UNITED STATES"
-
+- name: Last Purchase Amount
+  entity: User
+  description: The last purchase amount with winsorization
+  numerator:
+    fact_name: Purchase
+    operation: last_value
+    winsorization_lower_percentile: 0.05
+    winsorization_upper_percentile: 0.95
