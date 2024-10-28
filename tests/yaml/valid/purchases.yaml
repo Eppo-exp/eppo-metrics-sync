@@ -53,6 +53,7 @@ metrics:
         values:
           - "UNITED STATES"
 - name: Last Purchase Amount
+  entity: User
   description: The last purchase amount with winsorization
   numerator:
     fact_name: Purchase
