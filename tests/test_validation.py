@@ -39,6 +39,16 @@ def test_unique_fact_names():
         eppo_metrics_sync.validate()
 
 
+def test_valid_guardrail_cutoff_signs():
+    eppo_metrics_sync = EppoMetricsSync(directory=None)
+    eppo_metrics_sync.load_eppo_yaml(
+        path=test_yaml_dir + "/invalid_guardrail_cutoff_sign.yaml")
+
+    with pytest.raises(ValueError, match="Total Upgrades to Paid Plan is having invalid guardrail_cutoff sign: "
+                                         "guardrail_cutoff value should be negative"):
+        eppo_metrics_sync.validate()
+
+
 """def test_unique_fact_property_names():
 
     eppo_metrics_sync = EppoMetricsSync(directory = None)
