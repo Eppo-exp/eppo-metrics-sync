@@ -13,8 +13,8 @@ from eppo_metrics_sync.validation import (
 from eppo_metrics_sync.dbt_model_parser import DbtModelParser
 from eppo_metrics_sync.helper import load_yaml
 
-API_ENDPOINT = 'https://eppo.cloud/api/v1/metrics/sync'
-
+host = os.getenv('EPPO_API_HOST', 'https://eppo.cloud')
+API_ENDPOINT = f'{host}/api/v1/metrics/sync'
 
 class EppoMetricsSync:
     def __init__(
