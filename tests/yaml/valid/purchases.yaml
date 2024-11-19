@@ -29,7 +29,7 @@ metrics:
     fact_name: Purchase
     operation: distinct_entity
 - name: Guardrail metric
-  entity: User # it would be nice if this was optional if there is exactly 1 entity defined above
+  entity: User
   is_guardrail: true
   guardrail_cutoff: 0.03
   numerator:
