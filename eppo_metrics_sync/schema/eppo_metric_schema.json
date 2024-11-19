@@ -307,6 +307,10 @@
                                 "type": "number"
                             }
                         }
+                    },
+                    "guardrail_cutoff": {
+                        "description": "The guardrail cutoff for the metric",
+                        "type": "number"
                     }
                 }
             }
