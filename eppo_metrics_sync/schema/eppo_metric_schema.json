@@ -71,7 +71,7 @@
                                     "description": "User-friendly description of the fact",
                                     "type": "string"
                                 },
-                                "desired_change" : {
+                                "desired_change": {
                                     "description": "Specify whether or not increases in the fact are desired",
                                     "enum": ["increase", "decrease"]
                                 }
@@ -124,6 +124,10 @@
                         "description": "A user-friendly description of the fact",
                         "type": "string"
                     },
+                    "type": {
+                        "description": "The kind of metric to be calculated",
+                        "enum": ["simple", "ratio", "funnel", "percentile"]
+                    },
                     "entity": {
                         "description": "Must exactly match entity's name in Eppo UI",
                         "type": "string"
@@ -146,7 +150,7 @@
                     },
                     "guardrail_cutoff": {
                         "description": "If a metric is expected to increase, this value should be negative, to warn when the metric is decreasing by more than this value.",
-                        "type": "number"
+                        "type": ["number", "null"]
                     },
                     "numerator": {
                         "description": "Specify how the numerator of this metric should be aggregated",
