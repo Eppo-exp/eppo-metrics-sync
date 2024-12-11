@@ -54,7 +54,7 @@ def test_valid_guardrail_cutoff_signs():
     eppo_metrics_sync = EppoMetricsSync(directory = None)
     eppo_metrics_sync.load_yaml(
         path = test_yaml_dir + "/duplicated_fact_property_names.yaml")
-    
+
     with pytest.raises(ValueError, match = "Fact property names are not unique: device"):
         eppo_metrics_sync.validate()"""
 
