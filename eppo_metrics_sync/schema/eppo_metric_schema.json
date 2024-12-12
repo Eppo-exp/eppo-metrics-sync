@@ -65,7 +65,7 @@
                                 },
                                 "column": {
                                     "description": "The column that contains this fact (if not specified, will use each record)",
-                                    "type": "string"
+                                    "type":  ["string", "null"]
                                 },
                                 "description": {
                                     "description": "User-friendly description of the fact",
