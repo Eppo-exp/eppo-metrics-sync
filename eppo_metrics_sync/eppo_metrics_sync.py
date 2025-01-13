@@ -138,7 +138,7 @@ class EppoMetricsSync:
             raise Exception('EPPO_API_KEY not set in environment variables. Please set and try again')
 
         sync_tag = self._determine_sync_tag()
-        if not api_key:
+        if not sync_tag:
             raise Exception('EPPO_SYNC_TAG not set in environment variables. Please set and try again')
 
         headers = {"X-Eppo-Token": api_key}
