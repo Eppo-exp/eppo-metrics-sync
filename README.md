@@ -104,6 +104,14 @@ pip install -r requirements.txt
 pytest tests
 ```
 
+### Running the package
+
+```bash
+export EPPO_API_KEY="your-api-key"
+export EPPO_SYNC_TAG="your-sync-tag"
+python -m eppo_metrics_sync path/to/yaml/directory
+```
+
 ### Building and Publishing
 
 For package maintainers:
