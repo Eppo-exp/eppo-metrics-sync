@@ -7,7 +7,8 @@ from eppo_metrics_sync.validation import (
     unique_names,
     valid_fact_references,
     metric_aggregation_is_valid,
-    valid_guardrail_cutoff_signs
+    valid_guardrail_cutoff_signs,
+    valid_experiment_computation
 )
 
 from eppo_metrics_sync.dbt_model_parser import DbtModelParser
@@ -112,6 +113,7 @@ class EppoMetricsSync:
         valid_fact_references(self)
         metric_aggregation_is_valid(self)
         valid_guardrail_cutoff_signs(self)
+        valid_experiment_computation(self)
 
         if self.validation_errors:
             error_count = len(self.validation_errors)

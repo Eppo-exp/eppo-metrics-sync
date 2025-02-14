@@ -65,7 +65,7 @@
                                 },
                                 "column": {
                                     "description": "The column that contains this fact (if not specified, will use each record)",
-                                    "type":  ["string", "null"]
+                                    "type": ["string", "null"]
                                 },
                                 "description": {
                                     "description": "User-friendly description of the fact",
@@ -97,6 +97,10 @@
                                 "description": {
                                     "description": "User-friendly description of the fact property",
                                     "type": "string"
+                                },
+                                "include_experiment_computation": {
+                                    "description": "If true, this fact property will be used in experiment result computation",
+                                    "type": "boolean"
                                 }
                             }
                         }

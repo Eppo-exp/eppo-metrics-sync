@@ -50,11 +50,9 @@ def test_valid_guardrail_cutoff_signs():
 
 
 """def test_unique_fact_property_names():
-
     eppo_metrics_sync = EppoMetricsSync(directory = None)
-    eppo_metrics_sync.load_yaml(
+    eppo_metrics_sync.load_eppo_yaml(
         path = test_yaml_dir + "/duplicated_fact_property_names.yaml")
-
     with pytest.raises(ValueError, match = "Fact property names are not unique: device"):
         eppo_metrics_sync.validate()"""
 
@@ -66,6 +64,12 @@ def test_invalid_fact_reference():
     with pytest.raises(ValueError, match=re.escape("Invalid fact reference(s): revenue")):
         eppo_metrics_sync.validate()
 
+def test_invalid_experiment_computation():
+    eppo_metrics_sync = EppoMetricsSync(directory=None)
+    eppo_metrics_sync.load_eppo_yaml(
+        path=test_yaml_dir + "/invalid_experiment_computation.yaml")
+    with pytest.raises(ValueError, match=re.escape("Invalid include_experiment_computation value. It must be a boolean value for property: Traffic Source")):
+        eppo_metrics_sync.validate()
 
 def test_invalid_winsorization_operation():
     test_agg = {
