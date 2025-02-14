@@ -69,6 +69,15 @@ def valid_fact_references(payload):
             str(', '.join(fact_references.difference(fact_names)))
         )
 
+def valid_experiment_computation(payload):
+    for fact_source in payload.fact_sources:
+        if 'properties' in fact_source:
+            for property in fact_source['properties']:
+                if 'include_experiment_computation' in property:
+                    if not isinstance(property['include_experiment_computation'], bool):
+                        payload.validation_errors.append(
+                            f"Invalid include_experiment_computation value. It must be a boolean value for property: {property['name']}"
+                        )
 
 def metric_aggregation_is_valid(payload):
     for m in payload.metrics:

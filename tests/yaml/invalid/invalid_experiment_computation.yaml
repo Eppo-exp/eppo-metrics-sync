@@ -16,7 +16,7 @@ fact_sources:
   properties:
   - name: Traffic Source
     column: TRAFFIC_SOURCE
-    include_experiment_computation: true
+    include_experiment_computation: 0
   - name: Country
     column: COUNTRY
     include_experiment_computation: true
@@ -31,36 +31,3 @@ metrics:
   numerator:
     fact_name: Purchase
     operation: distinct_entity
-- name: AOV
-  entity: User
-  type: ratio
-  numerator:
-    fact_name: Purchase
-    operation: sum
-    winsorization_upper_percentile: 0.99
-  denominator:
-    fact_name: Purchase
-    operation: distinct_entity
-- name: Chrome Purchase
-  entity: User
-  metric_display_style: decimal
-  numerator:
-    fact_name: Purchase
-    operation: sum
-    filters:
-      - fact_property: Browser
-        operation: equals
-        values:
-          - "CHROME"
-      - fact_property: Country
-        operation: equals
-        values:
-          - "UNITED STATES"
-- name: Last Purchase Amount
-  entity: User
-  description: The last purchase amount with winsorization
-  numerator:
-    fact_name: Purchase
-    operation: last_value
-    winsorization_lower_percentile: 0.05
-    winsorization_upper_percentile: 0.95
