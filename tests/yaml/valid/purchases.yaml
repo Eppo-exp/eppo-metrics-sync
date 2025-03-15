@@ -31,6 +31,13 @@ metrics:
   numerator:
     fact_name: Purchase
     operation: distinct_entity
+- name: Guardrail metric
+  entity: User
+  is_guardrail: true
+  guardrail_cutoff: 0.03
+  numerator:
+    fact_name: Purchase
+    operation: distinct_entity
 - name: AOV
   entity: User
   type: ratio
