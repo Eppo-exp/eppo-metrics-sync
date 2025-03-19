@@ -118,7 +118,7 @@
             "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["name", "entity", "numerator"],
+                "required": ["name", "entity"],
                 "properties": {
                     "name": {
                         "description": "A user-friendly name shown in the Eppo UI",
@@ -130,7 +130,7 @@
                     },
                     "type": {
                         "description": "The kind of metric to be calculated",
-                        "enum": ["simple", "ratio", "funnel", "percentile"]
+                        "enum": ["simple", "ratio", "percentile"]
                     },
                     "entity": {
                         "description": "Must exactly match entity's name in Eppo UI",
@@ -313,6 +313,24 @@
                             "winsorization_upper_percentile": {
                                 "description": "Percentile at which to clip aggregated metrics (optional)",
                                 "type": "number"
+                            }
+                        }
+                    },
+                    "percentile": {
+                        "description": "For percentile metrics only: specify the fact and percentile value",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["fact_name", "percentile_value"],
+                        "properties": {
+                            "fact_name": {
+                                "description": "Must match one of the values specified in fact_sources.facts.name",
+                                "type": "string"
+                            },
+                            "percentile_value": {
+                                "description": "The percentile to calculate (between 0 and 1)",
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
                             }
                         }
                     }

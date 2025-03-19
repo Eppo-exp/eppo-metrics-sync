@@ -54,9 +54,12 @@ def unique_names(payload):
 def valid_fact_references(payload):
     fact_references = set()
     for metric in payload.metrics:
-        fact_references.add(metric['numerator']['fact_name'])
+        if 'numerator' in metric:
+            fact_references.add(metric['numerator']['fact_name'])
         if 'denominator' in metric:
             fact_references.add(metric['denominator']['fact_name'])
+        if 'percentile' in metric:
+            fact_references.add(metric['percentile']['fact_name'])
 
     fact_names = set()
     for fact_source in payload.fact_sources:
@@ -81,6 +84,13 @@ def valid_experiment_computation(payload):
 
 def metric_aggregation_is_valid(payload):
     for m in payload.metrics:
+        if m.get('type') == 'percentile':
+            percentile_error = percentile_metric_is_valid(m)
+            if percentile_error:
+                payload.validation_errors.append(
+                    f"{m['name']} has invalid percentile configuration: {percentile_error}"
+                )
+            continue
 
         numerator_error = aggregation_is_valid(m['numerator'])
         if numerator_error:
@@ -103,6 +113,17 @@ def valid_guardrail_cutoff_signs(payload):
             facts[fact['name']] = fact
 
     for m in payload.metrics:
+        if m.get('type') == 'percentile':
+            if is_guardrail_cutoff_exist(m):
+                percentile_fact_name = m['percentile']['fact_name']
+                if percentile_fact_name in facts and 'desired_change' in facts[percentile_fact_name]:
+                    error = is_valid_guardrail_cutoff_sign(m, facts[percentile_fact_name])
+                    if error:
+                        payload.validation_errors.append(
+                            f"{m['name']} is having invalid guardrail_cutoff sign: {error}"
+                        )
+            continue
+
         numerator_fact_name = m['numerator']['fact_name']
         if is_guardrail_cutoff_exist(m) and numerator_fact_name in facts and 'desired_change' in facts[numerator_fact_name]:
             error = is_valid_guardrail_cutoff_sign(m, facts[numerator_fact_name])
@@ -213,6 +234,33 @@ def aggregation_is_valid(aggregation):
         'threshold_metric_settings',
         error_message
     )
+
+    if error_message:
+        return '\n'.join(error_message)
+    else:
+        return None
+
+def percentile_metric_is_valid(metric):
+    error_message = []
+
+    # Check for required percentile field
+    if 'percentile' not in metric:
+        error_message.append("Missing 'percentile' field for percentile metric")
+        return '\n'.join(error_message)
+
+    percentile = metric['percentile']
+
+    # Check for required fact_name
+    if 'fact_name' not in percentile:
+        error_message.append("Missing 'fact_name' in percentile configuration")
+
+    # Check for required percentile_value
+    if 'percentile_value' not in percentile:
+        error_message.append("Missing 'percentile_value' in percentile configuration")
+    elif not isinstance(percentile['percentile_value'], (int, float)):
+        error_message.append("'percentile_value' must be a number")
+    elif percentile['percentile_value'] < 0 or percentile['percentile_value'] > 1:
+        error_message.append("'percentile_value' must be between 0 and 1")
 
     if error_message:
         return '\n'.join(error_message)
