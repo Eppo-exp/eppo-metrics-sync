@@ -90,13 +90,16 @@ def metric_aggregation_is_valid(payload):
                 payload.validation_errors.append(
                     f"{m['name']} has invalid percentile configuration: {percentile_error}"
                 )
+            # Skip the rest of the loop iteration for percentile metrics
+            # since they don't have numerator/denominator to validate
             continue
 
-        numerator_error = aggregation_is_valid(m['numerator'])
-        if numerator_error:
-            payload.validation_errors.append(
-                f"{m['name']} has invalid numerator: {numerator_error}"
-            )
+        if 'numerator' in m:
+            numerator_error = aggregation_is_valid(m['numerator'])
+            if numerator_error:
+                payload.validation_errors.append(
+                    f"{m['name']} has invalid numerator: {numerator_error}"
+                )
 
         if 'denominator' in m:
             denominator_error = aggregation_is_valid(m['denominator'])
@@ -122,15 +125,18 @@ def valid_guardrail_cutoff_signs(payload):
                         payload.validation_errors.append(
                             f"{m['name']} is having invalid guardrail_cutoff sign: {error}"
                         )
+            # Skip the rest of the loop iteration for percentile metrics
+            # since they don't have numerator/denominator to validate
             continue
 
-        numerator_fact_name = m['numerator']['fact_name']
-        if is_guardrail_cutoff_exist(m) and numerator_fact_name in facts and 'desired_change' in facts[numerator_fact_name]:
-            error = is_valid_guardrail_cutoff_sign(m, facts[numerator_fact_name])
-            if error:
-                payload.validation_errors.append(
-                    f"{m['name']} is having invalid guardrail_cutoff sign: {error}"
-                )
+        if 'numerator' in m:
+            numerator_fact_name = m['numerator']['fact_name']
+            if is_guardrail_cutoff_exist(m) and numerator_fact_name in facts and 'desired_change' in facts[numerator_fact_name]:
+                error = is_valid_guardrail_cutoff_sign(m, facts[numerator_fact_name])
+                if error:
+                    payload.validation_errors.append(
+                        f"{m['name']} is having invalid guardrail_cutoff sign: {error}"
+                    )
 
 
 def is_valid_guardrail_cutoff_sign(metric, numerator_fact):
