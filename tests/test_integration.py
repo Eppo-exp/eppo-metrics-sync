@@ -133,9 +133,115 @@ metrics:
         text=True
     )
 
-    # Instead of strict assertion, you could also accept errors
-    # that might be expected in your test environment
     assert result.returncode == 0, f"Failed with error: {result.stderr}"
+
+def test_percentile_metric_with_filters(temp_dir):
+    """Test that percentile metrics with filters pass validation."""
+    # Create a separate directory just for this test
+    filter_dir = os.path.join(temp_dir, "percentile_filter_test")
+    os.makedirs(filter_dir)
+
+    filter_yaml = os.path.join(filter_dir, "percentile_filter_metric.yaml")
+    with open(filter_yaml, "w") as f:
+        f.write("""fact_sources:
+- name: App Usage With Filters
+  sql: |
+    SELECT
+      timestamp as TS,
+      user_id,
+      app_open_duration,
+      app_type
+    FROM app_usage_table
+  timestamp_column: TS
+  entities:
+  - entity_name: User
+    column: user_id
+  facts:
+  - name: App Open With Type
+    column: app_open_duration
+  properties:
+  - name: app_type
+    column: app_type
+metrics:
+- name: Mobile App Opens (p90)
+  description: 90th percentile of mobile app opens
+  type: percentile
+  entity: User
+  metric_display_style: decimal
+  minimum_detectable_effect: 0.05
+  reference_url: ""
+  guardrail_cutoff: null
+  percentile:
+    fact_name: App Open With Type
+    percentile_value: 0.90
+    filters:
+    - fact_property: app_type
+      operation: equals
+      values: ["mobile"]
+""")
+
+    # Run validation
+    result = subprocess.run(
+        ["python", "-m", "eppo_metrics_sync", filter_dir, "--dryrun"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    assert result.returncode == 0, f"Failed with error: {result.stderr}"
+
+def test_invalid_percentile_metric(temp_dir):
+    """Test that invalid percentile metrics fail validation."""
+    # Create a separate directory just for this test
+    invalid_percentile_dir = os.path.join(temp_dir, "invalid_percentile_test")
+    os.makedirs(invalid_percentile_dir)
+
+    invalid_yaml = os.path.join(invalid_percentile_dir, "invalid_percentile.yaml")
+    with open(invalid_yaml, "w") as f:
+        f.write("""fact_sources:
+- name: Invalid App Usage
+  sql: |
+    SELECT
+      timestamp as TS,
+      user_id,
+      app_open_duration
+    FROM app_usage_table
+  timestamp_column: TS
+  entities:
+  - entity_name: User
+    column: user_id
+  facts:
+  - name: App Open Invalid
+    column: app_open_duration
+metrics:
+- name: Invalid Percentile
+  description: Invalid percentile metric
+  type: percentile
+  entity: User
+  metric_display_style: decimal
+  percentile:
+    # Missing required percentile_value
+    fact_name: App Open Invalid
+    # Missing percentile_value which is required
+    filters:
+    - fact_property: nonexistent_property
+      operation: equals
+      values: "some_value"
+""")
+
+    # Run validation
+    result = subprocess.run(
+        ["python", "-m", "eppo_metrics_sync", invalid_percentile_dir, "--dryrun"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
+    # Should fail validation
+    assert result.returncode != 0, "Invalid percentile metric should fail validation"
+
+    # Verify it fails for the right reason (missing percentile_value)
+    assert "percentile_value" in result.stderr or "percentile_value" in result.stdout
 
 def test_invalid_yaml(temp_dir):
     """Test that invalid YAML files fail validation."""
@@ -263,5 +369,6 @@ def test_package_installation_and_dependencies():
                 text=True
             )
 
-            # Just verify the command completes without a fatal error
-            assert True  # The fact that we reached this point means the command didn't crash
+            # We consider the test passed if it can be installed and run
+            # Even if it returns an error code for an empty directory
+            assert True

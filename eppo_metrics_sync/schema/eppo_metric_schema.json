@@ -331,6 +331,32 @@
                                 "type": "number",
                                 "minimum": 0,
                                 "maximum": 1
+                            },
+                            "filters": {
+                                "description": "Optional fact property filters to apply",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["fact_property", "operation", "values"],
+                                    "properties": {
+                                        "fact_property": {
+                                            "description": "Must match one of the values in fact_sources.properties.name",
+                                            "type": "string"
+                                        },
+                                        "operation": {
+                                            "description": "Either equals or not_equals",
+                                            "enum": ["equals", "not_equals"]
+                                        },
+                                        "values": {
+                                            "description": "Values to include if operation is 'equals', or exclude if operation is 'not_equals'",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
