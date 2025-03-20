@@ -156,3 +156,93 @@ def test_valid_yaml():
     eppo_metrics_sync = EppoMetricsSync(directory=None)
     eppo_metrics_sync.load_eppo_yaml(path='tests/yaml/valid/purchases.yaml')
     eppo_metrics_sync.validate()
+
+def test_valid_percentile_yaml():
+    eppo_metrics_sync = EppoMetricsSync(directory=None)
+    eppo_metrics_sync.load_eppo_yaml(path='tests/yaml/valid/percentile_test.yaml')
+    eppo_metrics_sync.validate()
+
+def test_invalid_percentile_yaml():
+    eppo_metrics_sync = EppoMetricsSync(directory=None)
+    eppo_metrics_sync.load_eppo_yaml(path='tests/yaml/invalid/invalid_percentile.yaml')
+
+    with pytest.raises(ValueError) as excinfo:
+        eppo_metrics_sync.validate()
+
+    error_msg = str(excinfo.value)
+    assert "Invalid App opens percentile has invalid percentile configuration: Missing 'percentile_value' in percentile configuration" in error_msg
+    assert "Invalid percentile value has invalid percentile configuration: 'percentile_value' must be between 0 and 1" in error_msg
+
+def test_percentile_metrics():
+    # Test with missing percentile field
+    metric = {
+        'name': 'Test Percentile Metric',
+        'type': 'percentile',
+        'entity': 'User'
+    }
+    from eppo_metrics_sync.validation import percentile_metric_is_valid
+    error = percentile_metric_is_valid(metric)
+    assert error == "Missing 'percentile' field for percentile metric"
+
+    # Test with missing fact_name
+    metric = {
+        'name': 'Test Percentile Metric',
+        'type': 'percentile',
+        'entity': 'User',
+        'percentile': {
+            'percentile_value': 0.95
+        }
+    }
+    error = percentile_metric_is_valid(metric)
+    assert error == "Missing 'fact_name' in percentile configuration"
+
+    # Test with missing percentile_value
+    metric = {
+        'name': 'Test Percentile Metric',
+        'type': 'percentile',
+        'entity': 'User',
+        'percentile': {
+            'fact_name': 'App open'
+        }
+    }
+    error = percentile_metric_is_valid(metric)
+    assert error == "Missing 'percentile_value' in percentile configuration"
+
+    # Test with invalid percentile_value type
+    metric = {
+        'name': 'Test Percentile Metric',
+        'type': 'percentile',
+        'entity': 'User',
+        'percentile': {
+            'fact_name': 'App open',
+            'percentile_value': 'invalid'
+        }
+    }
+    error = percentile_metric_is_valid(metric)
+    assert error == "'percentile_value' must be a number"
+
+    # Test with percentile_value out of range
+    metric = {
+        'name': 'Test Percentile Metric',
+        'type': 'percentile',
+        'entity': 'User',
+        'percentile': {
+            'fact_name': 'App open',
+            'percentile_value': 1.5
+        }
+    }
+    error = percentile_metric_is_valid(metric)
+    assert error == "'percentile_value' must be between 0 and 1"
+
+    # Test with valid percentile metric
+    metric = {
+        'name': 'Test Percentile Metric',
+        'type': 'percentile',
+        'entity': 'User',
+        'percentile': {
+            'fact_name': 'App open',
+            'percentile_value': 0.95
+        }
+    }
+    error = percentile_metric_is_valid(metric)
+    assert error is None
