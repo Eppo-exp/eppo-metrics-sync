@@ -9,6 +9,10 @@
             "description": "An optional identifier for the source of metrics. Recommended to be defined in CI/CD and not in yaml files",
             "type": "string"
         },
+        "reference_url": {
+            "description": "An optional URL to link to in the Eppo UI",
+            "type": "string"
+        },
         "fact_sources": {
             "description": "A fact source, corresponds to a fact SQL definition in the Eppo UI",
             "type": "array",
@@ -29,7 +33,7 @@
                         "type": "string"
                     },
                     "reference_url": {
-                        "description": "URL to use for 'Open in GitHub' in Eppo UI (optional)",
+                        "description": "An optional URL to link to in the Eppo UI",
                         "type": "string"
                     },
                     "entities": {
@@ -149,7 +153,7 @@
                         "type": "number"
                     },
                     "reference_url": {
-                        "description": "URL to use for 'Open in GitHub' in Eppo UI (optional)",
+                        "description": "An optional URL to link to in the Eppo UI",
                         "type": "string"
                     },
                     "guardrail_cutoff": {
@@ -251,6 +255,14 @@
                             "winsorization_upper_percentile": {
                                 "description": "Percentile at which to clip aggregated metrics (optional)",
                                 "type": "number"
+                            },
+                            "winsor_lower_fixed_value": {
+                                "description": "A fixed value to clip the lower percentile at (optional)",
+                                "type": "number"
+                            },
+                            "winsor_upper_fixed_value": {
+                                "description": "A fixed value to clip the upper percentile at (optional)",
+                                "type": "number"
                             }
                         }
                     },
@@ -306,12 +318,24 @@
                                 "description": "What time unit to use: minutes, hours, days, or weeks (optional)",
                                 "enum": ["minutes", "hours", "days", "weeks", "calendar_days"]
                             },
+                            "aggregation_enable_aging_subject_filter": {
+                                "description": "Controls whether subjects (entities) should be filtered out of metric calculations until they have 'aged' for a sufficient period. This is particularly important for metrics that require a certain observation period to be meaningful.",
+                                "type": "boolean"
+                            },
                             "winsorization_lower_percentile": {
                                 "description": "Percentile at which to clip aggregated metrics (optional)",
                                 "type": "number"
                             },
                             "winsorization_upper_percentile": {
                                 "description": "Percentile at which to clip aggregated metrics (optional)",
+                                "type": "number"
+                            },
+                            "winsor_lower_fixed_value": {
+                                "description": "A fixed value to clip the lower percentile at (optional)",
+                                "type": "number"
+                            },
+                            "winsor_upper_fixed_value": {
+                                "description": "A fixed value to clip the upper percentile at (optional)",
                                 "type": "number"
                             }
                         }
@@ -331,6 +355,32 @@
                                 "type": "number",
                                 "minimum": 0,
                                 "maximum": 1
+                            },
+                            "filters": {
+                                "description": "Optional fact property filters to apply",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["fact_property", "operation", "values"],
+                                    "properties": {
+                                        "fact_property": {
+                                            "description": "Must match one of the values in fact_sources.properties.name",
+                                            "type": "string"
+                                        },
+                                        "operation": {
+                                            "description": "Either equals or not_equals",
+                                            "enum": ["equals", "not_equals"]
+                                        },
+                                        "values": {
+                                            "description": "Values to include if operation is 'equals', or exclude if operation is 'not_equals'",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
