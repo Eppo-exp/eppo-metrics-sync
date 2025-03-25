@@ -319,7 +319,7 @@
                                 "enum": ["minutes", "hours", "days", "weeks", "calendar_days"]
                             },
                             "aggregation_enable_aging_subject_filter": {
-                                "description": "TBD",
+                                "description": "Controls whether subjects (entities) should be filtered out of metric calculations until they have 'aged' for a sufficient period. This is particularly important for metrics that require a certain observation period to be meaningful.",
                                 "type": "boolean"
                             },
                             "winsorization_lower_percentile": {
