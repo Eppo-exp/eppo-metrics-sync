@@ -131,6 +131,18 @@ class EppoMetricsSync:
 
         return os.getenv('EPPO_SYNC_TAG')
 
+    def _attach_reference_url(self, payload):
+        """
+        Optionally attach reference url to the payload if one exists
+        """
+
+        reference_url = os.getenv('EPPO_REFERENCE_URL')
+        if not reference_url:
+            return payload
+        
+        payload["reference_url"] = reference_url
+        return payload
+
     def sync(self):
         self.read_yaml_files()
         if self.sync_prefix is not None:
@@ -151,6 +163,7 @@ class EppoMetricsSync:
             "fact_sources": self.fact_sources,
             "metrics": self.metrics
         }
+        payload = self._attach_reference_url(payload)
 
         response = requests.post(f'{API_ENDPOINT}{"?allow_upgrades=true" if self.allow_upgrades else ""}', json=payload, headers=headers)
 
