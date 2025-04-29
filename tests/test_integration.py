@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import tempfile
 from pathlib import Path
@@ -127,9 +128,6 @@ metrics:
         original_env = os.environ.copy()
 
         try:
-            # Import the helper function here instead of at module level
-            import sys
-            import os
 
             # Install the package first in the current environment
             subprocess.run(
