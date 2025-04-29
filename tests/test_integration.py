@@ -4,8 +4,6 @@ import tempfile
 from pathlib import Path
 import venv
 
-# Import the helper function to load YAML files
-from eppo_metrics_sync.helper import load_yaml
 
 def test_package_installation_and_dependencies():
     """
@@ -129,7 +127,18 @@ metrics:
         original_env = os.environ.copy()
 
         try:
-            # Import the class and _attach_reference_url method
+            # Import the helper function here instead of at module level
+            import sys
+            import os
+
+            # Install the package first in the current environment
+            subprocess.run(
+                [sys.executable, '-m', 'pip', 'install', '-e', str(Path(__file__).parent.parent.absolute())],
+                check=True
+            )
+
+            # Now import after installation
+            from eppo_metrics_sync.helper import load_yaml
             from eppo_metrics_sync.eppo_metrics_sync import EppoMetricsSync
 
             # Set environment variables for testing
