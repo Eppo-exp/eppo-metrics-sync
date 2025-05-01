@@ -29,6 +29,8 @@ pip install eppo-metrics-sync
 export EPPO_API_KEY="your-api-key"
 
 export EPPO_SYNC_TAG="your-sync-tag" # optional
+
+export EPPO_REFERENCE_URL="your-reference-url" # optional
 ```
 
 2. Create your metrics YAML files (see [Documentation](#documentation))
@@ -109,6 +111,7 @@ pytest tests
 ```bash
 export EPPO_API_KEY="your-api-key"
 export EPPO_SYNC_TAG="your-sync-tag"
+export EPPO_REFERENCE_URL="your-reference-url"
 python -m eppo_metrics_sync path/to/yaml/directory
 ```
 
