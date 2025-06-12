@@ -53,10 +53,77 @@ Options:
 -   `--schema` Schema type: eppo (default) or dbt-model
 -   `--sync-prefix` Prefix for fact/metric names (useful for testing)
 -   `--dbt-model-prefix` Warehouse/schema prefix for dbt models
+-   `--allow-upgrades` Allow existing non-certified metrics/fact sources to become certified
+
+#### When to use `--allow-upgrades`
+
+The `--allow-upgrades` flag is useful in the following scenarios:
+
+-   **Promoting existing metrics to certified status**: If you have existing metrics or fact sources in Eppo that are not currently certified, this flag allows them to be upgraded to certified status during the sync process.
+-   **Migrating from manual to code-managed metrics**: When transitioning from manually created metrics in the Eppo UI to managing them through YAML files, this flag enables the promotion of those metrics to certified status.
+-   **Avoiding conflicts during migration**: Without this flag, attempting to sync metrics that already exist in a non-certified state may result in conflicts or the sync process not upgrading their certification status.
+
+## Validation Rules & Constraints
+
+The following validation rules are enforced when syncing metrics. Understanding these constraints upfront can help avoid validation errors during development:
+
+### Winsorization Constraints
+
+Winsorization parameters (`winsorization_lower_percentile`, `winsorization_upper_percentile`) can **only** be used with these aggregation operations:
+- ✅ `sum`
+- ✅ `count` 
+- ✅ `last_value`
+- ✅ `first_value`
+
+**Not supported for:**
+- ❌ `count_distinct` - Use different outlier handling approaches
+- ❌ `distinct_entity` - Binary metrics don't need winsorization
+- ❌ `threshold` - Threshold logic handles outliers differently
+- ❌ `retention` - Binary retention metrics don't need winsorization  
+- ❌ `conversion` - Binary conversion metrics don't need winsorization
+
+### Advanced Aggregation Parameters
+
+Each advanced aggregation type requires its specific parameter and cannot use others:
+
+#### Threshold Metrics
+- **Required**: `threshold_metric_settings` object with:
+  - `comparison_operator`: "gt" or "gte"
+  - `aggregation_type`: "sum" or "count" (**not** count_distinct)
+  - `breach_value`: numeric threshold value
+- **Cannot use**: `retention_threshold_days`, `conversion_threshold_days`
+
+#### Retention Metrics  
+- **Required**: `retention_threshold_days` (numeric)
+- **Cannot use**: `threshold_metric_settings`, `conversion_threshold_days`
+
+#### Conversion Metrics
+- **Required**: `conversion_threshold_days` (numeric)  
+- **Cannot use**: `threshold_metric_settings`, `retention_threshold_days`
+- **Cannot use**: Timeframe parameters (`aggregation_timeframe_start_value`, `aggregation_timeframe_end_value`)
+
+### Timeframe Parameters
+
+When using aggregation timeframe parameters:
+- **Required**: `aggregation_timeframe_unit` must be specified if any timeframe parameters are used
+- **Supported units**: "minutes", "hours", "days", "weeks", "calendar_days"
+- **Not supported for**: `conversion` operations (use `conversion_threshold_days` instead)
+
+### Denominator Constraints
+
+For ratio metrics, denominators can only use these operations:
+- ✅ `sum`, `count`, `count_distinct`, `distinct_entity`, `last_value`, `first_value`
+- ❌ Cannot use: `threshold`, `retention`, `conversion`
+
+### Guardrail Cutoff Signs
+
+When using guardrail metrics (`is_guardrail: true` with `guardrail_cutoff`):
+- If fact's `desired_change: "increase"` → `guardrail_cutoff` must be **negative**
+- If fact's `desired_change: "decrease"` → `guardrail_cutoff` must be **positive**
 
 ## Documentation
 
-For detailed information about metric configuration and available options, see Eppo's [documentation page](https://docs.geteppo.com/data-management/certified-metrics/).
+For detailed information about metric configuration, available options and constraints, see Eppo's [documentation page](https://docs.geteppo.com/data-management/certified-metrics/).
 
 ### Example YAML Configuration
 
