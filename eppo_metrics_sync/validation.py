@@ -201,7 +201,7 @@ def aggregation_is_valid(aggregation):
             'The aggregation_timeframe_unit must be set to use timeframe parameters.'
         )
 
-    # only set timeframe_parameters on a some operation types
+    # only set timeframe_parameters on some operation types
     if aggregation['operation'] in ['conversion']:
         matched = [p for p in timeframe_parameters if p in aggregation]
         if matched:
