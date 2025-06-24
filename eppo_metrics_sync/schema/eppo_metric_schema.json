@@ -18,7 +18,13 @@
             "type": "array",
             "items": {
                 "additionalProperties": false,
-                "required": ["name", "sql", "timestamp_column", "entities", "facts"],
+                "required": [
+                    "name",
+                    "sql",
+                    "timestamp_column",
+                    "entities",
+                    "facts"
+                ],
                 "properties": {
                     "name": {
                         "description": "A name for the fact source",
@@ -42,7 +48,10 @@
                         "items": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["entity_name", "column"],
+                            "required": [
+                                "entity_name",
+                                "column"
+                            ],
                             "properties": {
                                 "entity_name": {
                                     "description": "The name of the entity, must exactly match name specified in Eppo UI",
@@ -60,7 +69,9 @@
                         "type": "array",
                         "items": {
                             "type": "object",
-                            "required": ["name"],
+                            "required": [
+                                "name"
+                            ],
                             "additionalProperties": false,
                             "properties": {
                                 "name": {
@@ -69,7 +80,10 @@
                                 },
                                 "column": {
                                     "description": "The column that contains this fact (if not specified, will use each record)",
-                                    "type": ["string", "null"]
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
                                 },
                                 "description": {
                                     "description": "User-friendly description of the fact",
@@ -77,7 +91,10 @@
                                 },
                                 "desired_change": {
                                     "description": "Specify whether or not increases in the fact are desired",
-                                    "enum": ["increase", "decrease"]
+                                    "enum": [
+                                        "increase",
+                                        "decrease"
+                                    ]
                                 }
                             }
                         }
@@ -88,7 +105,10 @@
                         "items": {
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["name", "column"],
+                            "required": [
+                                "name",
+                                "column"
+                            ],
                             "properties": {
                                 "name": {
                                     "description": "A user-friendly name for the fact property",
@@ -122,7 +142,10 @@
             "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["name", "entity"],
+                "required": [
+                    "name",
+                    "entity"
+                ],
                 "properties": {
                     "name": {
                         "description": "A user-friendly name shown in the Eppo UI",
@@ -134,7 +157,11 @@
                     },
                     "type": {
                         "description": "The kind of metric to be calculated",
-                        "enum": ["simple", "ratio", "percentile"]
+                        "enum": [
+                            "simple",
+                            "ratio",
+                            "percentile"
+                        ]
                     },
                     "entity": {
                         "description": "Must exactly match entity's name in Eppo UI",
@@ -146,7 +173,10 @@
                     },
                     "metric_display_style": {
                         "description": "Either decimal or percent",
-                        "enum": ["decimal", "percent"]
+                        "enum": [
+                            "decimal",
+                            "percent"
+                        ]
                     },
                     "minimum_detectable_effect": {
                         "description": "Default minimum detectable effect used in progress bar",
@@ -158,13 +188,19 @@
                     },
                     "guardrail_cutoff": {
                         "description": "If a metric is expected to increase, this value should be negative, to warn when the metric is decreasing by more than this value.",
-                        "type": ["number", "null"]
+                        "type": [
+                            "number",
+                            "null"
+                        ]
                     },
                     "numerator": {
                         "description": "Specify how the numerator of this metric should be aggregated",
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["fact_name", "operation"],
+                        "required": [
+                            "fact_name",
+                            "operation"
+                        ],
                         "properties": {
                             "fact_name": {
                                 "description": "Must match one of the values in fact_sources.facts.name",
@@ -172,7 +208,17 @@
                             },
                             "operation": {
                                 "description": "Which aggregation to apply to the fact",
-                                "enum": ["sum", "count", "distinct_entity", "threshold", "conversion", "retention", "count_distinct", "last_value", "first_value"]
+                                "enum": [
+                                    "sum",
+                                    "count",
+                                    "distinct_entity",
+                                    "threshold",
+                                    "conversion",
+                                    "retention",
+                                    "count_distinct",
+                                    "last_value",
+                                    "first_value"
+                                ]
                             },
                             "filters": {
                                 "description": "Optional fact property filters to apply",
@@ -180,7 +226,11 @@
                                 "items": {
                                     "type": "object",
                                     "additionalProperties": false,
-                                    "required": ["fact_property", "operation", "values"],
+                                    "required": [
+                                        "fact_property",
+                                        "operation",
+                                        "values"
+                                    ],
                                     "properties": {
                                         "fact_property": {
                                             "description": "Must match one of the values in fact_sources.properties.name",
@@ -188,7 +238,10 @@
                                         },
                                         "operation": {
                                             "description": "Either equals or not_equals",
-                                            "enum": ["equals", "not_equals"]
+                                            "enum": [
+                                                "equals",
+                                                "not_equals"
+                                            ]
                                         },
                                         "values": {
                                             "description": "Values to include if operation is 'equals', or exclude if operation is 'not_equals'",
@@ -208,19 +261,33 @@
                                 "description": "Only used if operation = conversion",
                                 "type": "number"
                             },
+                            "enable_aging_subject_filter": {
+                                "description": "Controls whether subjects (entities) should be filtered out of metric calculations until they have 'aged' for a sufficient period. This is particularly important for metrics that require a certain observation period to be meaningful.",
+                                "type": "boolean"
+                            },
                             "threshold_metric_settings": {
                                 "description": "Only used if operation = conversion",
                                 "type": "object",
                                 "additionalProperties": false,
-                                "required": ["comparison_operator", "aggregation_type", "breach_value"],
+                                "required": [
+                                    "comparison_operator",
+                                    "aggregation_type",
+                                    "breach_value"
+                                ],
                                 "properties": {
                                     "comparison_operator": {
                                         "description": "One of gt or gte",
-                                        "enum": ["gt", "gte"]
+                                        "enum": [
+                                            "gt",
+                                            "gte"
+                                        ]
                                     },
                                     "aggregation_type": {
                                         "description": "One of sum or count",
-                                        "enum": ["sum", "count"]
+                                        "enum": [
+                                            "sum",
+                                            "count"
+                                        ]
                                     },
                                     "breach_value": {
                                         "description": "At what value is the threshold breached?",
@@ -228,7 +295,12 @@
                                     },
                                     "timeframe_unit": {
                                         "description": "What time unit to use: minutes, hours, days, or weeks (optional)",
-                                        "enum": ["minutes", "hours", "days", "weeks"]
+                                        "enum": [
+                                            "minutes",
+                                            "hours",
+                                            "days",
+                                            "weeks"
+                                        ]
                                     },
                                     "timeframe_value": {
                                         "description": "How many timeframe units since assignment to include (optional)",
@@ -246,7 +318,13 @@
                             },
                             "aggregation_timeframe_unit": {
                                 "description": "What time unit to use: minutes, hours, days, or weeks (optional)",
-                                "enum": ["minutes", "hours", "days", "weeks", "calendar_days"]
+                                "enum": [
+                                    "minutes",
+                                    "hours",
+                                    "days",
+                                    "weeks",
+                                    "calendar_days"
+                                ]
                             },
                             "winsorization_lower_percentile": {
                                 "description": "Percentile at which to clip aggregated metrics (optional)",
@@ -270,7 +348,10 @@
                         "description": "For ratio metrics only: specify how the denominator of this metric should be aggregated",
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["fact_name", "operation"],
+                        "required": [
+                            "fact_name",
+                            "operation"
+                        ],
                         "properties": {
                             "fact_name": {
                                 "description": "Must match one of the values specified in fact_sources.facts.name",
@@ -278,7 +359,14 @@
                             },
                             "operation": {
                                 "description": "How to aggregate fact",
-                                "enum": ["sum", "count", "distinct_entity", "count_distinct", "last_value", "first_value"]
+                                "enum": [
+                                    "sum",
+                                    "count",
+                                    "distinct_entity",
+                                    "count_distinct",
+                                    "last_value",
+                                    "first_value"
+                                ]
                             },
                             "filters": {
                                 "description": "Optional fact property filters to apply",
@@ -286,7 +374,11 @@
                                 "items": {
                                     "type": "object",
                                     "additionalProperties": false,
-                                    "required": ["fact_property", "operation", "values"],
+                                    "required": [
+                                        "fact_property",
+                                        "operation",
+                                        "values"
+                                    ],
                                     "properties": {
                                         "fact_property": {
                                             "description": "Must match one of the values in fact_sources.properties.name",
@@ -294,7 +386,10 @@
                                         },
                                         "operation": {
                                             "description": "Either equals or not_equals",
-                                            "enum": ["equals", "not_equals"]
+                                            "enum": [
+                                                "equals",
+                                                "not_equals"
+                                            ]
                                         },
                                         "values": {
                                             "description": "Values to include if operation is 'equals', or exclude if operation is 'not_equals'",
@@ -316,9 +411,15 @@
                             },
                             "aggregation_timeframe_unit": {
                                 "description": "What time unit to use: minutes, hours, days, or weeks (optional)",
-                                "enum": ["minutes", "hours", "days", "weeks", "calendar_days"]
+                                "enum": [
+                                    "minutes",
+                                    "hours",
+                                    "days",
+                                    "weeks",
+                                    "calendar_days"
+                                ]
                             },
-                            "aggregation_enable_aging_subject_filter": {
+                            "enable_aging_subject_filter": {
                                 "description": "Controls whether subjects (entities) should be filtered out of metric calculations until they have 'aged' for a sufficient period. This is particularly important for metrics that require a certain observation period to be meaningful.",
                                 "type": "boolean"
                             },
@@ -344,7 +445,10 @@
                         "description": "For percentile metrics only: specify the fact and percentile value",
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["fact_name", "percentile_value"],
+                        "required": [
+                            "fact_name",
+                            "percentile_value"
+                        ],
                         "properties": {
                             "fact_name": {
                                 "description": "Must match one of the values specified in fact_sources.facts.name",
@@ -362,7 +466,11 @@
                                 "items": {
                                     "type": "object",
                                     "additionalProperties": false,
-                                    "required": ["fact_property", "operation", "values"],
+                                    "required": [
+                                        "fact_property",
+                                        "operation",
+                                        "values"
+                                    ],
                                     "properties": {
                                         "fact_property": {
                                             "description": "Must match one of the values in fact_sources.properties.name",
@@ -370,7 +478,10 @@
                                         },
                                         "operation": {
                                             "description": "Either equals or not_equals",
-                                            "enum": ["equals", "not_equals"]
+                                            "enum": [
+                                                "equals",
+                                                "not_equals"
+                                            ]
                                         },
                                         "values": {
                                             "description": "Values to include if operation is 'equals', or exclude if operation is 'not_equals'",

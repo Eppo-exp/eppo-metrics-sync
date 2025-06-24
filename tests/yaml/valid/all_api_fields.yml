@@ -41,12 +41,13 @@ metrics:
           operation: sum
           winsor_upper_fixed_value: 7200
           winsor_lower_fixed_value: 0
+          enable_aging_subject_filter: false
       denominator:
           fact_name: Video View
           operation: distinct_entity
           winsor_lower_fixed_value: 0
           winsor_upper_fixed_value: 1000
-          aggregation_enable_aging_subject_filter: true
+          enable_aging_subject_filter: true
     - name: Mobile Premium Content Views
       entity: User
       metric_display_style: decimal
