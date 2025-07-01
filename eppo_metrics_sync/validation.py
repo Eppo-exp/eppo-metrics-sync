@@ -180,8 +180,8 @@ def aggregation_is_valid(aggregation):
             'Invalid aggregation operation: ' + aggregation['operation']
         )
 
-    # can only winsorize sum or count metrics
-    if aggregation['operation'] not in ['sum', 'count', 'last_value', 'first_value']:
+    # can only winsorize operations in the list immediately following this line
+    if aggregation['operation'] not in ['sum', 'count', 'count_distinct', 'last_value', 'first_value']:
         if [name for name in winsorization_parameters if name in aggregation]:
             error_message.append(
                 'Cannot winsorize a metric with operation ' + aggregation['operation']
@@ -201,7 +201,7 @@ def aggregation_is_valid(aggregation):
             'The aggregation_timeframe_unit must be set to use timeframe parameters.'
         )
 
-    # only set timeframe_parameters on a some operation types
+    # only set timeframe_parameters on some operation types
     if aggregation['operation'] in ['conversion']:
         matched = [p for p in timeframe_parameters if p in aggregation]
         if matched:
