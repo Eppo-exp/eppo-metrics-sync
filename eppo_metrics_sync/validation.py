@@ -180,7 +180,7 @@ def aggregation_is_valid(aggregation):
             'Invalid aggregation operation: ' + aggregation['operation']
         )
 
-    # can only winsorize sum or count metrics
+    # can only winsorize operations in the list immediately following this line
     if aggregation['operation'] not in ['sum', 'count', 'count_distinct', 'last_value', 'first_value']:
         if [name for name in winsorization_parameters if name in aggregation]:
             error_message.append(
