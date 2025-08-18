@@ -92,6 +92,7 @@ Each advanced aggregation type requires its specific parameter and cannot use ot
   - `aggregation_type`: "sum" or "count" (**not** count_distinct)
   - `breach_value`: numeric threshold value
 - **Cannot use**: `retention_threshold_days`, `conversion_threshold_days`
+- **Cannot use**: Timeframe parameters (`aggregation_timeframe_start_value`, `aggregation_timeframe_end_value`, `aggregation_timeframe_unit`)
 
 #### Retention Metrics  
 - **Required**: `retention_threshold_days` (numeric)

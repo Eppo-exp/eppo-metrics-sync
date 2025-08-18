@@ -153,6 +153,7 @@ def test_threshold_with_single_timeframe_parameter():
     test_agg = {
         'operation': 'threshold',
         'aggregation_timeframe_start_value': 1,
+        'aggregation_timeframe_unit': 'days',  # Add unit to avoid the unit validation error
         'threshold_metric_settings': {
             'comparison_operator': 'gte',
             'aggregation_type': 'count',
@@ -161,7 +162,7 @@ def test_threshold_with_single_timeframe_parameter():
     }
 
     res = aggregation_is_valid(test_agg)
-    assert res == 'Cannot specify aggregation_timeframe_start_value for operation threshold'
+    assert res == 'Cannot specify aggregation_timeframe_start_value, aggregation_timeframe_unit for operation threshold'
 
 
 def test_count_distinct():
