@@ -217,10 +217,13 @@ def aggregation_is_valid(aggregation):
                 matched[0] + ' specified, but operation is ' + aggregation['operation']
             )
 
-    # if threshold:
+    # threshold operations cannot use timeframe parameters
     if aggregation['operation'] == 'threshold':
-        # TODO
-        pass
+        matched = [p for p in timeframe_parameters if p in aggregation]
+        if matched:
+            error_message.append(
+                f"Cannot specify {', '.join(matched)} for operation threshold"
+            )
 
     distinct_advanced_aggregation_parameter_set(
         aggregation,
