@@ -133,6 +133,38 @@ def test_extra_parameter_on_retention_metric():
     assert res == 'Invalid parameter for retention aggregation: conversion_threshold_days'
 
 
+def test_threshold_with_timeframe_parameters():
+    test_agg = {
+        'operation': 'threshold',
+        'aggregation_timeframe_end_value': 7,
+        'aggregation_timeframe_unit': 'days',
+        'threshold_metric_settings': {
+            'comparison_operator': 'gt',
+            'aggregation_type': 'sum',
+            'breach_value': 100
+        }
+    }
+
+    res = aggregation_is_valid(test_agg)
+    assert res == 'Cannot specify aggregation_timeframe_end_value, aggregation_timeframe_unit for operation threshold'
+
+
+def test_threshold_with_single_timeframe_parameter():
+    test_agg = {
+        'operation': 'threshold',
+        'aggregation_timeframe_start_value': 1,
+        'aggregation_timeframe_unit': 'days',  # Add unit to avoid the unit validation error
+        'threshold_metric_settings': {
+            'comparison_operator': 'gte',
+            'aggregation_type': 'count',
+            'breach_value': 5
+        }
+    }
+
+    res = aggregation_is_valid(test_agg)
+    assert res == 'Cannot specify aggregation_timeframe_start_value, aggregation_timeframe_unit for operation threshold'
+
+
 def test_count_distinct():
     test_agg = {
         'operation': 'count_distinct',
