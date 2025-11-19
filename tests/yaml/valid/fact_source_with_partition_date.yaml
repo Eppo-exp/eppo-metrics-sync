@@ -1,0 +1,23 @@
+fact_sources:
+    - name: Partitioned Purchase Events
+      sql: |
+          SELECT
+            events.*
+          FROM customer_db.onboarding.events as events
+          WHERE event_type = 'Revenue'
+      timestamp_column: TS
+      partition_date: PARTITION_DATE
+      entities:
+          - entity_name: User
+            column: USER_ID
+      facts:
+          - name: Partitioned Purchase
+          - name: Partitioned Purchase Revenue
+            column: EVENT_VALUE
+metrics:
+    - name: Partitioned Purchase Count
+      entity: User
+      type: simple
+      numerator:
+          fact_name: Partitioned Purchase
+          operation: count

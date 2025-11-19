@@ -132,6 +132,10 @@
                     "always_full_refresh": {
                         "description": "If true, this fact source will always be fully refreshed (optional)",
                         "type": "boolean"
+                    },
+                    "partition_date": {
+                        "description": "Optional date column to use for partitioning the fact source data",
+                        "type": "string"
                     }
                 }
             }
