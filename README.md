@@ -71,15 +71,15 @@ The following validation rules are enforced when syncing metrics. Understanding 
 
 Winsorization parameters (`winsorization_lower_percentile`, `winsorization_upper_percentile`) can **only** be used with these aggregation operations:
 - ✅ `sum`
-- ✅ `count` 
+- ✅ `count`
+- ✅ `count_distinct`
 - ✅ `last_value`
 - ✅ `first_value`
 
 **Not supported for:**
-- ❌ `count_distinct` - Use different outlier handling approaches
 - ❌ `distinct_entity` - Binary metrics don't need winsorization
 - ❌ `threshold` - Threshold logic handles outliers differently
-- ❌ `retention` - Binary retention metrics don't need winsorization  
+- ❌ `retention` - Binary retention metrics don't need winsorization
 - ❌ `conversion` - Binary conversion metrics don't need winsorization
 
 ### Advanced Aggregation Parameters

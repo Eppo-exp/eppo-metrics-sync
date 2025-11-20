@@ -176,6 +176,16 @@ def test_count_distinct():
     res = aggregation_is_valid(test_agg)
     assert res == None
 
+def test_count_distinct_with_winsorization():
+    test_agg = {
+        'operation': 'count_distinct',
+        'winsorization_lower_percentile': 0.05,
+        'winsorization_upper_percentile': 0.95
+    }
+
+    res = aggregation_is_valid(test_agg)
+    assert res == None
+
 def test_last_value():
     res = aggregation_is_valid({'operation': 'last_value'})
     assert res == None
