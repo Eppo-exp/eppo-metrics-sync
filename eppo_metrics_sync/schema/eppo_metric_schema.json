@@ -498,6 +498,13 @@
                                 }
                             }
                         }
+                    },
+                    "desired_change": {
+                        "description": "Specify what direction of change in the metric is desired (optional). If not specified, the metric's intended direction of change will be inferred from the facts this metric is based on.",
+                        "enum": [
+                            "increase",
+                            "decrease"
+                        ]
                     }
                 }
             }
