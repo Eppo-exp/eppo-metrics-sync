@@ -72,11 +72,11 @@ The following validation rules are enforced when syncing metrics. Understanding 
 Winsorization parameters (`winsorization_lower_percentile`, `winsorization_upper_percentile`) can **only** be used with these aggregation operations:
 - ✅ `sum`
 - ✅ `count` 
+- ✅ `count_distinct`
 - ✅ `last_value`
 - ✅ `first_value`
 
 **Not supported for:**
-- ❌ `count_distinct` - Use different outlier handling approaches
 - ❌ `distinct_entity` - Binary metrics don't need winsorization
 - ❌ `threshold` - Threshold logic handles outliers differently
 - ❌ `retention` - Binary retention metrics don't need winsorization  
@@ -119,8 +119,10 @@ For ratio metrics, denominators can only use these operations:
 ### Guardrail Cutoff Signs
 
 When using guardrail metrics (`is_guardrail: true` with `guardrail_cutoff`):
-- If fact's `desired_change: "increase"` → `guardrail_cutoff` must be **negative**
-- If fact's `desired_change: "decrease"` → `guardrail_cutoff` must be **positive**
+- If `desired_change: "increase"` → `guardrail_cutoff` must be **negative**
+- If `desired_change: "decrease"` → `guardrail_cutoff` must be **positive**
+
+**Note:** The validation uses the metric's `desired_change` if specified, otherwise it falls back to the fact's `desired_change`. This allows you to override the fact-level direction when creating guardrail metrics.
 
 ## Documentation
 
@@ -149,6 +151,7 @@ metrics:
       numerator:
           fact_name: Revenue
           operation: sum
+      desired_change: increase
 ```
 
 ## Development

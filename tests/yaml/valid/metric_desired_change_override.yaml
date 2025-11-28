@@ -1,0 +1,19 @@
+fact_sources:
+  - name: upgrades_table
+    sql: select * from upgrades
+    timestamp_column: ts
+    entities:
+      - entity_name: user
+        column: user_id
+    facts:
+      - name: upgrades
+        desired_change: increase
+metrics:
+  - name: Total Upgrades to Paid Plan (Guardrail)
+    entity: User
+    is_guardrail: true
+    guardrail_cutoff: 1
+    desired_change: decrease
+    numerator:
+      fact_name: upgrades
+      operation: sum
