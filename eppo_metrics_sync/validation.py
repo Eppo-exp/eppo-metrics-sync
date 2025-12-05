@@ -119,7 +119,7 @@ def valid_guardrail_cutoff_signs(payload):
         if m.get('type') == 'percentile':
             if is_guardrail_cutoff_exist(m):
                 percentile_fact_name = m['percentile']['fact_name']
-                if percentile_fact_name in facts and 'desired_change' in facts[percentile_fact_name]:
+                if percentile_fact_name in facts:
                     error = is_valid_guardrail_cutoff_sign(m, facts[percentile_fact_name])
                     if error:
                         payload.validation_errors.append(
@@ -131,7 +131,7 @@ def valid_guardrail_cutoff_signs(payload):
 
         if 'numerator' in m:
             numerator_fact_name = m['numerator']['fact_name']
-            if is_guardrail_cutoff_exist(m) and numerator_fact_name in facts and 'desired_change' in facts[numerator_fact_name]:
+            if is_guardrail_cutoff_exist(m) and numerator_fact_name in facts:
                 error = is_valid_guardrail_cutoff_sign(m, facts[numerator_fact_name])
                 if error:
                     payload.validation_errors.append(
@@ -140,9 +140,15 @@ def valid_guardrail_cutoff_signs(payload):
 
 
 def is_valid_guardrail_cutoff_sign(metric, numerator_fact):
-    if numerator_fact['desired_change'] == 'decrease' and metric['guardrail_cutoff'] < 0:
+    # Prioritize metric-level desired_change over fact-level desired_change
+    desired_change = metric.get('desired_change', numerator_fact.get('desired_change'))
+
+    if not desired_change:
+        return None
+
+    if desired_change == 'decrease' and metric['guardrail_cutoff'] < 0:
         return f"guardrail_cutoff value should be positive"
-    elif numerator_fact['desired_change'] == 'increase' and metric['guardrail_cutoff'] > 0:
+    elif desired_change == 'increase' and metric['guardrail_cutoff'] > 0:
         return f"guardrail_cutoff value should be negative"
 
 

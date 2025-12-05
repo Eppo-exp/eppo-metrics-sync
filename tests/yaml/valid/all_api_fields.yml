@@ -87,3 +87,4 @@ metrics:
                 operation: equals
                 values:
                     - "MOBILE"
+      desired_change: decrease

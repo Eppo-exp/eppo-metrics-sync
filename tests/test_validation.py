@@ -189,6 +189,14 @@ def test_valid_yaml():
     eppo_metrics_sync.load_eppo_yaml(path='tests/yaml/valid/purchases.yaml')
     eppo_metrics_sync.validate()
 
+def test_metric_desired_change_override():
+    """Test that metric-level desired_change takes precedence over fact-level desired_change for guardrail validation"""
+    eppo_metrics_sync = EppoMetricsSync(directory=None)
+    eppo_metrics_sync.load_eppo_yaml(path='tests/yaml/valid/metric_desired_change_override.yaml')
+    # Should not raise an error: fact has desired_change='increase' (would require negative cutoff)
+    # but metric has desired_change='decrease' (requires positive cutoff, which we have: 1)
+    eppo_metrics_sync.validate()
+
 def test_valid_percentile_yaml():
     eppo_metrics_sync = EppoMetricsSync(directory=None)
     eppo_metrics_sync.load_eppo_yaml(path='tests/yaml/valid/percentile_test.yaml')
