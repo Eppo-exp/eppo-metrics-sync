@@ -10,6 +10,6 @@ pyrsistent==0.20.0
 pytest==8.2.0
 PyYAML==6.0.1
 requests==2.32.4
-setuptools==70.0.0
+setuptools==78.1.1
 six==1.16.0
 urllib3==2.2.1
