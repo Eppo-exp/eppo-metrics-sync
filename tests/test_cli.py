@@ -17,6 +17,10 @@ def test_cli_dryrun_option(run_cli):
     result = run_cli(['tests/yaml/valid', '--dryrun'])
     assert result.returncode == 0
 
+def test_cli_two_directories_auto(run_cli):
+    result = run_cli(['tests/yaml/valid', 'tests/yaml/dbt/valid/', '--dryrun', '--schema', 'auto', '--dbt-model-prefix', 'foo'])
+    assert result.returncode == 0
+
 def test_cli_invalid_directory(run_cli):
     result = run_cli(['tests/yaml/invalid'])
     assert result.returncode != 0

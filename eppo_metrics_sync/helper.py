@@ -1,5 +1,7 @@
+from functools import cache
 import yaml
 
+@cache
 def load_yaml(path):
     try:
         with open(path, 'r') as file:

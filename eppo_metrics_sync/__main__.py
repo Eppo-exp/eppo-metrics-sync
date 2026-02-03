@@ -7,10 +7,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Scan specified directory for Eppo yaml files and sync with Eppo"
     )
-    parser.add_argument("directory", help="The directory of yaml files to process")
+    parser.add_argument("directories", help="The directories of yaml files to process", nargs="*")
     parser.add_argument("--allow-upgrades", action="store_true", help="Allow existing non-certified metrics/fact sources to become certified")
     parser.add_argument("--dryrun", action="store_true", help="Run in dry run mode")
-    parser.add_argument("--schema", help="One of: eppo[default], dbt-model", default='eppo')
+    parser.add_argument("--schema", help="One of: eppo[default], dbt-model", default='eppo', choices=["eppo", "dbt-model", "auto"])
     parser.add_argument("--sync-prefix", help="Used for testing in a shared Q/A workspace. "
                                               "Will use this as a sync tag and append all fact and metric definitions with this prefix.",
                         required=False
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     eppo_metrics_sync = EppoMetricsSync(
-        directory=args.directory,
+        directory=args.directories,
         schema_type=args.schema,
         dbt_model_prefix=args.dbt_model_prefix,
         sync_prefix=args.sync_prefix,
