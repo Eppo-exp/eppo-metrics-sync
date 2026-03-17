@@ -1,0 +1,32 @@
+# Sync-level optional metadata (creator_email, updater_email, team_name)
+# Per-metric overrides can be set on individual metrics.
+reference_url: https://github.com/Eppo-exp/eppo-metrics-sync
+creator_email: data-team@company.com
+updater_email: ci-bot@company.com
+team_name: Analytics
+fact_sources:
+    - name: Test Source
+      sql: |
+          SELECT ts AS TS, user_id, value
+          FROM test_table
+      timestamp_column: TS
+      entities:
+          - entity_name: User
+            column: user_id
+      facts:
+          - name: Test Fact
+            column: value
+metrics:
+    - name: Metric With Defaults
+      entity: User
+      type: simple
+      numerator:
+          fact_name: Test Fact
+          operation: sum
+    - name: Metric With Override
+      entity: User
+      type: simple
+      team_name: Data Science
+      numerator:
+          fact_name: Test Fact
+          operation: sum

@@ -24,7 +24,10 @@ class EppoMetricsSync:
             schema_type='eppo',
             dbt_model_prefix=None,
             sync_prefix=None,
-            allow_upgrades=False
+            allow_upgrades=False,
+            creator_email=None,
+            updater_email=None,
+            team_name=None
     ):
         self.directory = directory
         self.fact_sources = []
@@ -34,6 +37,10 @@ class EppoMetricsSync:
         self.dbt_model_prefix = dbt_model_prefix
         self.sync_prefix = sync_prefix
         self.allow_upgrades = allow_upgrades
+        self.creator_email = creator_email
+        self.updater_email = updater_email
+        self.team_name = team_name
+        self._sync_metadata_yaml = {}  # sync-level creator_email, updater_email, team_name from YAML (last file wins)
 
         # temporary: ideally would pull this from Eppo API
         package_root = os.path.dirname(os.path.abspath(__file__))
@@ -47,6 +54,13 @@ class EppoMetricsSync:
             self.fact_sources.extend(yaml_data['fact_sources'])
         if 'metrics' in yaml_data:
             self.metrics.extend(yaml_data['metrics'])
+        # Sync-level optional metadata from YAML (last file wins when scanning directory)
+        if 'creator_email' in yaml_data:
+            self._sync_metadata_yaml['creator_email'] = yaml_data['creator_email']
+        if 'updater_email' in yaml_data:
+            self._sync_metadata_yaml['updater_email'] = yaml_data['updater_email']
+        if 'team_name' in yaml_data:
+            self._sync_metadata_yaml['team_name'] = yaml_data['team_name']
 
     def load_dbt_yaml(self, path):
         if not self.dbt_model_prefix:
@@ -139,8 +153,25 @@ class EppoMetricsSync:
         reference_url = os.getenv('EPPO_REFERENCE_URL')
         if not reference_url:
             return payload
-        
+
         payload["reference_url"] = reference_url
+        return payload
+
+    def _attach_sync_metadata(self, payload):
+        """
+        Optionally attach sync-level creator_email, updater_email, team_name.
+        Env vars (EPPO_CREATOR_EMAIL, EPPO_UPDATER_EMAIL, EPPO_TEAM_NAME) override YAML/config.
+        Omitted fields are not added so the API can clear them (omit = clear).
+        """
+        creator_email = os.getenv('EPPO_CREATOR_EMAIL') or self.creator_email or self._sync_metadata_yaml.get('creator_email')
+        updater_email = os.getenv('EPPO_UPDATER_EMAIL') or self.updater_email or self._sync_metadata_yaml.get('updater_email')
+        team_name = os.getenv('EPPO_TEAM_NAME') or self.team_name or self._sync_metadata_yaml.get('team_name')
+        if creator_email:
+            payload['creator_email'] = creator_email
+        if updater_email:
+            payload['updater_email'] = updater_email
+        if team_name:
+            payload['team_name'] = team_name
         return payload
 
     def sync(self):
@@ -164,6 +195,7 @@ class EppoMetricsSync:
             "metrics": self.metrics
         }
         payload = self._attach_reference_url(payload)
+        payload = self._attach_sync_metadata(payload)
 
         response = requests.post(f'{API_ENDPOINT}{"?allow_upgrades=true" if self.allow_upgrades else ""}', json=payload, headers=headers)
 
