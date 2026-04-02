@@ -24,7 +24,8 @@ class EppoMetricsSync:
             schema_type='eppo',
             dbt_model_prefix=None,
             sync_prefix=None,
-            allow_upgrades=False
+            allow_upgrades=False,
+            is_certified=True
     ):
         self.directory = directory
         self.fact_sources = []
@@ -34,6 +35,7 @@ class EppoMetricsSync:
         self.dbt_model_prefix = dbt_model_prefix
         self.sync_prefix = sync_prefix
         self.allow_upgrades = allow_upgrades
+        self.is_certified = is_certified
 
         # temporary: ideally would pull this from Eppo API
         package_root = os.path.dirname(os.path.abspath(__file__))
@@ -165,7 +167,13 @@ class EppoMetricsSync:
         }
         payload = self._attach_reference_url(payload)
 
-        response = requests.post(f'{API_ENDPOINT}{"?allow_upgrades=true" if self.allow_upgrades else ""}', json=payload, headers=headers)
+        params = {}
+        if self.allow_upgrades:
+            params['allow_upgrades'] = 'true'
+        if not self.is_certified:
+            params['is_certified'] = 'false'
+
+        response = requests.post(API_ENDPOINT, params=params, json=payload, headers=headers)
 
         if response.status_code < 400:
             print('Metrics synced')

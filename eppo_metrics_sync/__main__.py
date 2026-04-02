@@ -9,6 +9,7 @@ if __name__ == '__main__':
     )
     parser.add_argument("directory", help="The directory of yaml files to process")
     parser.add_argument("--allow-upgrades", action="store_true", help="Allow existing non-certified metrics/fact sources to become certified")
+    parser.add_argument("--no-certify", action="store_true", help="Sync without certifying: synced fact sources and metrics remain editable in the Eppo UI")
     parser.add_argument("--dryrun", action="store_true", help="Run in dry run mode")
     parser.add_argument("--schema", help="One of: eppo[default], dbt-model", default='eppo')
     parser.add_argument("--sync-prefix", help="Used for testing in a shared Q/A workspace. "
@@ -28,7 +29,8 @@ if __name__ == '__main__':
         schema_type=args.schema,
         dbt_model_prefix=args.dbt_model_prefix,
         sync_prefix=args.sync_prefix,
-        allow_upgrades=args.allow_upgrades
+        allow_upgrades=args.allow_upgrades,
+        is_certified=not args.no_certify
     )
 
     if args.dryrun:
