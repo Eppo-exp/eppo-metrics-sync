@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "eppo_metrics_sync"
-version = "0.1.16"
+dynamic = ["version"]
 description = "Sync metrics to Eppo"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -13,6 +13,9 @@ dependencies = [
     "jsonschema",
     "requests",
 ]
+
+[tool.setuptools_scm]
+version_file = "eppo_metrics_sync/_version.py"
 
 [tool.setuptools]
 packages = ["eppo_metrics_sync"]
