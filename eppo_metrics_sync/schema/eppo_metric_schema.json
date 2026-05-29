@@ -129,6 +129,10 @@
                             }
                         }
                     },
+                    "team_id": {
+                        "description": "Optional team ID to associate this fact source with a team in Eppo",
+                        "type": "integer"
+                    },
                     "always_full_refresh": {
                         "description": "If true, this fact source will always be fully refreshed (optional)",
                         "type": "boolean"
@@ -505,6 +509,10 @@
                             "increase",
                             "decrease"
                         ]
+                    },
+                    "team_id": {
+                        "description": "Optional team ID to associate this metric with a team in Eppo",
+                        "type": "integer"
                     }
                 }
             }
