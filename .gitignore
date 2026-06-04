@@ -7,3 +7,4 @@ dist/
 .venv
 .pytest_cache
 __pycache__
+eppo_metrics_sync/_version.py
