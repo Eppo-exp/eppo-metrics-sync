@@ -26,7 +26,11 @@ class EppoMetricsSync:
             sync_prefix=None,
             allow_upgrades=False
     ):
-        self.directory = directory
+        if directory is None:
+            directory = []
+        elif isinstance(directory, str):
+            directory = [directory]
+        self.directories = directory
         self.fact_sources = []
         self.metrics = []
         self.validation_errors = []
@@ -73,13 +77,15 @@ class EppoMetricsSync:
 
     def read_yaml_files(self):
         # Recursively scan the directory for YAML files and load valid ones
-        for root, _, files in os.walk(self.directory):
+        for root, _, files in self._scan_directories():
             for file in files:
                 if file.endswith(".yaml") or file.endswith(".yml"):
 
                     yaml_path = os.path.join(root, file)
 
-                    if self.schema_type == 'eppo':
+                    schema_type = self._detect_schema(yaml_path) if self.schema_type == 'auto' else self.schema_type
+
+                    if schema_type == 'eppo':
                         valid = self.yaml_is_valid(yaml_path)
                         if valid['passed']:
                             self.load_eppo_yaml(yaml_path)
@@ -88,7 +94,7 @@ class EppoMetricsSync:
                                 f"Schema violation in {yaml_path}: \n{valid['error_message']}"
                             )
 
-                    elif self.schema_type == 'dbt-model':
+                    elif schema_type == 'dbt-model':
                         self.load_dbt_yaml(yaml_path)
 
                     else:
@@ -98,6 +104,16 @@ class EppoMetricsSync:
             raise ValueError(
                 'No valid yaml files found. ' + ', '.join(self.validation_errors)
             )
+
+    def _scan_directories(self):
+        for d in self.directories:
+            yield from os.walk(d)
+
+    def _detect_schema(self, yaml_path):
+        yaml_data = load_yaml(yaml_path)
+        if 'version' in yaml_data and 'models' in yaml_data:
+            return 'dbt-model'
+        return 'eppo'
 
     def _add_sync_prefix(self):
         for source in self.fact_sources:
