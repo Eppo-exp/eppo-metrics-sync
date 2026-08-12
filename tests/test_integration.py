@@ -222,3 +222,50 @@ metrics:
             # Restore original environment
             os.environ.clear()
             os.environ.update(original_env)
+
+
+def test_sync_metadata_integration():
+    """
+    Test that creator_email, updater_email, team_name from YAML and env are attached to the payload.
+    Env overrides YAML. Per-metric overrides are preserved in metric objects.
+    """
+    from eppo_metrics_sync.eppo_metrics_sync import EppoMetricsSync
+
+    test_yaml_dir = str(Path(__file__).parent / "yaml" / "valid" / "sync_metadata.yaml")
+    eppo_sync = EppoMetricsSync(directory=None)
+    eppo_sync.load_eppo_yaml(test_yaml_dir)
+    eppo_sync.validate()
+
+    payload = {
+        "sync_tag": "test_tag",
+        "fact_sources": eppo_sync.fact_sources,
+        "metrics": eppo_sync.metrics
+    }
+    payload = eppo_sync._attach_reference_url(payload)
+    payload = eppo_sync._attach_sync_metadata(payload)
+
+    # Sync-level from YAML
+    assert payload.get("creator_email") == "data-team@company.com"
+    assert payload.get("updater_email") == "ci-bot@company.com"
+    assert payload.get("team_name") == "Analytics"
+
+    # Per-metric override preserved on second metric
+    metrics = payload["metrics"]
+    assert len(metrics) == 2
+    assert "team_name" not in metrics[0]
+    assert metrics[1].get("team_name") == "Data Science"
+
+    # Env overrides YAML
+    original_env = os.environ.copy()
+    try:
+        os.environ["EPPO_CREATOR_EMAIL"] = "env-override@company.com"
+        payload2 = {
+            "sync_tag": "test_tag",
+            "fact_sources": eppo_sync.fact_sources,
+            "metrics": eppo_sync.metrics
+        }
+        payload2 = eppo_sync._attach_sync_metadata(payload2)
+        assert payload2["creator_email"] == "env-override@company.com"
+    finally:
+        os.environ.clear()
+        os.environ.update(original_env)

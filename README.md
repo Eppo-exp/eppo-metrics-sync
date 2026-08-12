@@ -31,6 +31,11 @@ export EPPO_API_KEY="your-api-key"
 export EPPO_SYNC_TAG="your-sync-tag" # optional
 
 export EPPO_REFERENCE_URL="your-reference-url" # optional
+
+# Optional: set metric creator, updater, and team (sync-level; env overrides YAML)
+export EPPO_CREATOR_EMAIL="data-team@company.com"
+export EPPO_UPDATER_EMAIL="ci-bot@company.com"
+export EPPO_TEAM_NAME="Analytics"
 ```
 
 2. Create your metrics YAML files (see [Documentation](#documentation))
@@ -54,6 +59,9 @@ Options:
 -   `--sync-prefix` Prefix for fact/metric names (useful for testing)
 -   `--dbt-model-prefix` Warehouse/schema prefix for dbt models
 -   `--allow-upgrades` Allow existing non-certified metrics/fact sources to become certified
+-   `--creator-email` Sync-level creator email (overrides YAML; can also set `EPPO_CREATOR_EMAIL`)
+-   `--updater-email` Sync-level updater email (overrides YAML; can also set `EPPO_UPDATER_EMAIL`)
+-   `--team-name` Sync-level team name (overrides YAML; can also set `EPPO_TEAM_NAME`)
 
 #### When to use `--allow-upgrades`
 
@@ -123,6 +131,29 @@ When using guardrail metrics (`is_guardrail: true` with `guardrail_cutoff`):
 - If `desired_change: "decrease"` → `guardrail_cutoff` must be **positive**
 
 **Note:** The validation uses the metric's `desired_change` if specified, otherwise it falls back to the fact's `desired_change`. This allows you to override the fact-level direction when creating guardrail metrics.
+
+### Optional sync metadata (creator, updater, team)
+
+You can set **creator_email**, **updater_email**, and **team_name** at the sync level (applying to all metrics) and optionally override per metric in YAML. Resolution order: env vars / CLI args override YAML. If you omit these in a later sync, the API clears the corresponding fields (omit = clear).
+
+- **Sync-level (defaults for all metrics):** Set in YAML at the root next to `sync_tag` / `reference_url` / `fact_sources` / `metrics`, or via env (`EPPO_CREATOR_EMAIL`, `EPPO_UPDATER_EMAIL`, `EPPO_TEAM_NAME`) or CLI (`--creator-email`, `--updater-email`, `--team-name`).
+- **Per-metric override:** Add `creator_email`, `updater_email`, or `team_name` on individual entries in the `metrics` array.
+
+Example (sync-level in YAML):
+
+```yaml
+creator_email: data-team@company.com
+updater_email: ci-bot@company.com
+team_name: Analytics
+fact_sources: [ ... ]
+metrics:
+  - name: My Metric
+    entity: User
+    ...
+  - name: Other Metric
+    team_name: Data Science   # override for this metric only
+    ...
+```
 
 ## Documentation
 

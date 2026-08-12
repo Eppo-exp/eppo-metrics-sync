@@ -13,6 +13,22 @@
             "description": "An optional URL to link to in the Eppo UI",
             "type": "string"
         },
+        "creator_email": {
+            "description": "Email of the user to set as metric creator/author. Resolved to a company user; if not found or omitted, creator_id is cleared.",
+            "type": "string",
+            "format": "email"
+        },
+        "updater_email": {
+            "description": "Email of the user to set as last updater. Same resolution/clearing rules as creator_email.",
+            "type": "string",
+            "format": "email"
+        },
+        "team_name": {
+            "description": "Name of the team to associate with the metric (1–200 chars). Resolved by name within the company.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+        },
         "fact_sources": {
             "description": "A fact source, corresponds to a fact SQL definition in the Eppo UI",
             "type": "array",
@@ -193,6 +209,22 @@
                     "reference_url": {
                         "description": "An optional URL to link to in the Eppo UI",
                         "type": "string"
+                    },
+                    "creator_email": {
+                        "description": "Override sync-level creator. Email of the user to set as metric creator/author.",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "updater_email": {
+                        "description": "Override sync-level updater. Email of the user to set as last updater.",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "team_name": {
+                        "description": "Override sync-level team. Name of the team to associate with the metric (1–200 chars).",
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
                     },
                     "guardrail_cutoff": {
                         "description": "If a metric is expected to increase, this value should be negative, to warn when the metric is decreasing by more than this value.",
