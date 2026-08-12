@@ -54,6 +54,11 @@ Options:
 -   `--sync-prefix` Prefix for fact/metric names (useful for testing)
 -   `--dbt-model-prefix` Warehouse/schema prefix for dbt models
 -   `--allow-upgrades` Allow existing non-certified metrics/fact sources to become certified
+-   `--no-certify` Sync without certifying — synced fact sources and metrics remain editable in the Eppo UI
+
+#### When to use `--no-certify`
+
+By default, synced metrics and fact sources are **certified**: they are locked from editing in the Eppo UI. Use `--no-certify` when you want to manage definitions in code but still allow team members to edit them in the UI (e.g., during an evaluation period or for metrics that are collaboratively maintained).
 
 #### When to use `--allow-upgrades`
 
