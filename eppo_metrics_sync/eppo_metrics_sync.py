@@ -2,6 +2,7 @@ import json
 import jsonschema
 import os
 import requests
+import time
 
 from eppo_metrics_sync.validation import (
     unique_names,
@@ -16,6 +17,35 @@ from eppo_metrics_sync.helper import load_yaml
 
 host = os.getenv('EPPO_API_HOST', 'https://eppo.cloud')
 API_ENDPOINT = f'{host}/api/v1/metrics/sync'
+ASYNC_API_ENDPOINT = f'{API_ENDPOINT}/async'
+
+DEFAULT_POLL_INTERVAL = 5
+DEFAULT_POLL_TIMEOUT = 600
+
+
+def _resolve_poll_setting(value, env_var, default):
+    """
+    Poll settings can be passed explicitly, set in the environment, or left
+    to the package default, in that order of precedence.
+    """
+
+    if value is None:
+        value = os.getenv(env_var)
+
+    if value is None:
+        return default
+
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f'{env_var} must be a number, got: {value}')
+
+    if value < 0:
+        raise ValueError(f'{env_var} must not be negative, got: {value}')
+
+    # keep whole numbers as ints so they read cleanly in log messages
+    return int(value) if value.is_integer() else value
+
 
 class EppoMetricsSync:
     def __init__(
@@ -24,7 +54,9 @@ class EppoMetricsSync:
             schema_type='eppo',
             dbt_model_prefix=None,
             sync_prefix=None,
-            allow_upgrades=False
+            allow_upgrades=False,
+            poll_interval=None,
+            poll_timeout=None
     ):
         self.directory = directory
         self.fact_sources = []
@@ -34,6 +66,12 @@ class EppoMetricsSync:
         self.dbt_model_prefix = dbt_model_prefix
         self.sync_prefix = sync_prefix
         self.allow_upgrades = allow_upgrades
+        self.poll_interval = _resolve_poll_setting(
+            poll_interval, 'EPPO_SYNC_POLL_INTERVAL', DEFAULT_POLL_INTERVAL
+        )
+        self.poll_timeout = _resolve_poll_setting(
+            poll_timeout, 'EPPO_SYNC_POLL_TIMEOUT', DEFAULT_POLL_TIMEOUT
+        )
 
         # temporary: ideally would pull this from Eppo API
         package_root = os.path.dirname(os.path.abspath(__file__))
@@ -143,6 +181,96 @@ class EppoMetricsSync:
         payload["reference_url"] = reference_url
         return payload
 
+    def _start_async_sync(self, payload, headers):
+        """
+        Kick off an asynchronous sync and return the initial sync status
+        """
+
+        url = ASYNC_API_ENDPOINT
+        if self.allow_upgrades:
+            url += '?allow_upgrades=true'
+
+        response = requests.post(url, json=payload, headers=headers)
+
+        if response.status_code >= 400:
+            raise Exception(f"Request failed {response.status_code}: {response.text}")
+
+        return self._parse_sync_status(response)
+
+    def _get_sync_status(self, sync_id, headers):
+        """
+        Fetch the current status of an in-flight sync
+        """
+
+        response = requests.get(f'{API_ENDPOINT}/{sync_id}', headers=headers)
+
+        if response.status_code >= 400:
+            raise Exception(
+                f"Failed to fetch status for sync {sync_id} "
+                f"({response.status_code}): {response.text}"
+            )
+
+        return self._parse_sync_status(response)
+
+    @staticmethod
+    def _parse_sync_status(response):
+        try:
+            sync_status = response.json()
+        except ValueError:
+            raise Exception(f"Unexpected response from Eppo API: {response.text}")
+
+        if not isinstance(sync_status, dict) or 'status' not in sync_status:
+            raise Exception(f"Unexpected response from Eppo API: {response.text}")
+
+        return sync_status
+
+    @staticmethod
+    def _sync_failure_message(sync_status):
+        message = f"Metrics sync {sync_status.get('id')} failed"
+        errors = sync_status.get('errors')
+        if errors:
+            message += ': \n' + '\n'.join(str(error) for error in errors)
+
+        return message
+
+    def _wait_for_sync(self, sync_id, headers, initial_status=None):
+        """
+        Poll the sync status endpoint until the sync reaches a terminal state,
+        or until poll_timeout seconds have elapsed
+        """
+
+        deadline = time.monotonic() + self.poll_timeout
+        sync_status = initial_status
+
+        while True:
+            if sync_status is None:
+                sync_status = self._get_sync_status(sync_id, headers)
+
+            status = sync_status.get('status')
+
+            if status == 'success':
+                print(f'Metrics synced (sync id: {sync_id})')
+                return sync_status
+
+            if status == 'failed':
+                raise Exception(self._sync_failure_message(sync_status))
+
+            if status != 'pending':
+                raise Exception(
+                    f"Unexpected status for sync {sync_id}: {status}"
+                )
+
+            time_remaining = deadline - time.monotonic()
+            if time_remaining <= 0:
+                raise Exception(
+                    f"Timed out after {self.poll_timeout} seconds waiting for "
+                    f"metrics sync {sync_id} to complete. The sync may still be "
+                    f"running in Eppo."
+                )
+
+            time.sleep(min(self.poll_interval, time_remaining))
+            sync_status = None
+
     def sync(self):
         self.read_yaml_files()
         if self.sync_prefix is not None:
@@ -165,11 +293,14 @@ class EppoMetricsSync:
         }
         payload = self._attach_reference_url(payload)
 
-        response = requests.post(f'{API_ENDPOINT}{"?allow_upgrades=true" if self.allow_upgrades else ""}', json=payload, headers=headers)
+        sync_status = self._start_async_sync(payload, headers)
 
-        if response.status_code < 400:
-            print('Metrics synced')
-        else:
-            raise Exception(f"Request failed {response.status_code}: {response.text}")
+        sync_id = sync_status.get('id')
+        if sync_id is None:
+            raise Exception(
+                f"Eppo API did not return a sync id: {json.dumps(sync_status)}"
+            )
 
-        return response
+        print(f'Metrics sync {sync_id} submitted, waiting for it to complete')
+
+        return self._wait_for_sync(sync_id, headers, initial_status=sync_status)
