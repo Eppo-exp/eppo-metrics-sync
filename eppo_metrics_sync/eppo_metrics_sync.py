@@ -192,6 +192,16 @@ class EppoMetricsSync:
 
         response = requests.post(url, json=payload, headers=headers)
 
+        # Eppo returns 304 with no status body when the payload is identical to
+        # the last successful sync for this sync tag, meaning there is nothing
+        # to enqueue and nothing to poll for
+        if response.status_code == 304:
+            return {
+                'sync_tag': payload.get('sync_tag'),
+                'status': 'success',
+                'unchanged': True
+            }
+
         if response.status_code >= 400:
             raise Exception(f"Request failed {response.status_code}: {response.text}")
 
@@ -294,6 +304,10 @@ class EppoMetricsSync:
         payload = self._attach_reference_url(payload)
 
         sync_status = self._start_async_sync(payload, headers)
+
+        if sync_status.get('unchanged'):
+            print('Metrics are unchanged since the last successful sync, nothing to do')
+            return sync_status
 
         sync_id = sync_status.get('id')
         if sync_id is None:

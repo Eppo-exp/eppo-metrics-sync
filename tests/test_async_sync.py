@@ -98,6 +98,26 @@ def test_sync_returns_immediately_when_initial_response_is_terminal(eppo_env, no
     assert no_sleep == []
 
 
+def test_unchanged_payload_is_a_no_op_success(eppo_env, no_sleep):
+    """
+    Eppo answers 304 with no status body when the payload matches the last
+    successful sync, so there is nothing to poll for
+    """
+
+    post = mock.Mock(return_value=FakeResponse(304, text=''))
+    get = mock.Mock()
+
+    with mock.patch('eppo_metrics_sync.eppo_metrics_sync.requests.post', post), \
+            mock.patch('eppo_metrics_sync.eppo_metrics_sync.requests.get', get):
+        result = make_sync().sync()
+
+    assert result['status'] == 'success'
+    assert result['unchanged'] is True
+    assert result['sync_tag'] == 'test_tag'
+    get.assert_not_called()
+    assert no_sleep == []
+
+
 def test_allow_upgrades_adds_query_param(eppo_env, no_sleep):
     post = mock.Mock(return_value=FakeResponse(
         202, {'id': 1, 'sync_tag': 'test_tag', 'status': 'success'}
