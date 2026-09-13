@@ -1,6 +1,7 @@
 import os
 import json
 import pytest
+import requests
 
 from unittest import mock
 
@@ -198,6 +199,48 @@ def test_failed_status_request_raises(eppo_env, no_sleep):
             make_sync(poll_interval=0).sync()
 
 
+def test_status_request_uses_remaining_timeout(eppo_env, no_sleep):
+    post = mock.Mock(return_value=FakeResponse(
+        202, {'id': 13, 'sync_tag': 'test_tag', 'status': 'pending'}
+    ))
+    get = mock.Mock(side_effect=requests.Timeout)
+
+    with mock.patch('eppo_metrics_sync.eppo_metrics_sync.requests.post', post), \
+            mock.patch('eppo_metrics_sync.eppo_metrics_sync.requests.get', get):
+        with pytest.raises(Exception, match='Timed out after 1 seconds'):
+            make_sync(poll_interval=0, poll_timeout=1).sync()
+
+    request_timeout = get.call_args.kwargs['timeout']
+    assert 0 < request_timeout <= 1
+
+
+def test_status_response_after_deadline_is_timeout(eppo_env, no_sleep):
+    eppo_sync = make_sync(poll_interval=0, poll_timeout=1)
+    get = mock.Mock(return_value={
+        'id': 14,
+        'sync_tag': 'test_tag',
+        'status': 'success',
+    })
+
+    with mock.patch.object(eppo_sync, '_get_sync_status', get), \
+            mock.patch(
+                'eppo_metrics_sync.eppo_metrics_sync.time.monotonic',
+                side_effect=[100, 100.25, 100.5, 101.1]
+            ):
+        with pytest.raises(Exception, match='Timed out after 1 seconds'):
+            eppo_sync._wait_for_sync(
+                14,
+                {'X-Eppo-Token': 'test_api_key'},
+                initial_status={'id': 14, 'status': 'pending'}
+            )
+
+    get.assert_called_once_with(
+        14,
+        {'X-Eppo-Token': 'test_api_key'},
+        timeout=0.5
+    )
+
+
 def test_non_json_response_raises(eppo_env, no_sleep):
     post = mock.Mock(return_value=FakeResponse(202, text='<html>gateway</html>'))
 
@@ -246,7 +289,7 @@ def test_explicit_poll_settings_override_environment(eppo_env, monkeypatch):
     assert eppo_sync.poll_timeout == 60
 
 
-@pytest.mark.parametrize('value', ['not-a-number', '-1'])
+@pytest.mark.parametrize('value', ['not-a-number', '-1', 'nan', 'inf', '-inf'])
 def test_invalid_poll_settings_raise(eppo_env, monkeypatch, value):
     monkeypatch.setenv('EPPO_SYNC_POLL_INTERVAL', value)
 
