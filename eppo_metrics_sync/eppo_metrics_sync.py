@@ -1,5 +1,6 @@
 import json
 import jsonschema
+import math
 import os
 import requests
 import time
@@ -39,6 +40,9 @@ def _resolve_poll_setting(value, env_var, default):
         value = float(value)
     except (TypeError, ValueError):
         raise ValueError(f'{env_var} must be a number, got: {value}')
+
+    if not math.isfinite(value):
+        raise ValueError(f'{env_var} must be finite, got: {value}')
 
     if value < 0:
         raise ValueError(f'{env_var} must not be negative, got: {value}')
@@ -207,12 +211,16 @@ class EppoMetricsSync:
 
         return self._parse_sync_status(response)
 
-    def _get_sync_status(self, sync_id, headers):
+    def _get_sync_status(self, sync_id, headers, timeout):
         """
         Fetch the current status of an in-flight sync
         """
 
-        response = requests.get(f'{API_ENDPOINT}/{sync_id}', headers=headers)
+        response = requests.get(
+            f'{API_ENDPOINT}/{sync_id}',
+            headers=headers,
+            timeout=timeout
+        )
 
         if response.status_code >= 400:
             raise Exception(
@@ -243,6 +251,13 @@ class EppoMetricsSync:
 
         return message
 
+    def _poll_timeout_message(self, sync_id):
+        return (
+            f"Timed out after {self.poll_timeout} seconds waiting for "
+            f"metrics sync {sync_id} to complete. The sync may still be "
+            f"running in Eppo."
+        )
+
     def _wait_for_sync(self, sync_id, headers, initial_status=None):
         """
         Poll the sync status endpoint until the sync reaches a terminal state,
@@ -254,7 +269,21 @@ class EppoMetricsSync:
 
         while True:
             if sync_status is None:
-                sync_status = self._get_sync_status(sync_id, headers)
+                time_remaining = deadline - time.monotonic()
+                if time_remaining <= 0:
+                    raise Exception(self._poll_timeout_message(sync_id))
+
+                try:
+                    sync_status = self._get_sync_status(
+                        sync_id,
+                        headers,
+                        timeout=time_remaining
+                    )
+                except requests.Timeout as error:
+                    raise Exception(self._poll_timeout_message(sync_id)) from error
+
+                if time.monotonic() >= deadline:
+                    raise Exception(self._poll_timeout_message(sync_id))
 
             status = sync_status.get('status')
 
@@ -272,11 +301,7 @@ class EppoMetricsSync:
 
             time_remaining = deadline - time.monotonic()
             if time_remaining <= 0:
-                raise Exception(
-                    f"Timed out after {self.poll_timeout} seconds waiting for "
-                    f"metrics sync {sync_id} to complete. The sync may still be "
-                    f"running in Eppo."
-                )
+                raise Exception(self._poll_timeout_message(sync_id))
 
             time.sleep(min(self.poll_interval, time_remaining))
             sync_status = None
