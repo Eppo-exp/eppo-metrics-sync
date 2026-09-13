@@ -12,6 +12,7 @@ A Python package for syncing metric definitions with Eppo's API. Manage your Epp
 -   Support for dbt models
 -   Dry-run capability for testing
 -   Prefix support for testing in shared workspaces
+-   Asynchronous syncing with status polling, so large syncs don't hit request timeouts
 
 ## Installation
 
@@ -31,6 +32,10 @@ export EPPO_API_KEY="your-api-key"
 export EPPO_SYNC_TAG="your-sync-tag" # optional
 
 export EPPO_REFERENCE_URL="your-reference-url" # optional
+
+export EPPO_SYNC_POLL_INTERVAL="5" # optional, seconds between status checks
+
+export EPPO_SYNC_POLL_TIMEOUT="600" # optional, seconds to wait for the sync to finish
 ```
 
 2. Create your metrics YAML files (see [Documentation](#documentation))
@@ -54,6 +59,8 @@ Options:
 -   `--sync-prefix` Prefix for fact/metric names (useful for testing)
 -   `--dbt-model-prefix` Warehouse/schema prefix for dbt models
 -   `--allow-upgrades` Allow existing non-certified metrics/fact sources to become certified
+-   `--poll-interval` Seconds between sync status checks (default: 5)
+-   `--poll-timeout` Seconds to wait for the sync to complete before giving up (default: 600)
 
 #### When to use `--allow-upgrades`
 
@@ -62,6 +69,49 @@ The `--allow-upgrades` flag is useful in the following scenarios:
 -   **Promoting existing metrics to certified status**: If you have existing metrics or fact sources in Eppo that are not currently certified, this flag allows them to be upgraded to certified status during the sync process.
 -   **Migrating from manual to code-managed metrics**: When transitioning from manually created metrics in the Eppo UI to managing them through YAML files, this flag enables the promotion of those metrics to certified status.
 -   **Avoiding conflicts during migration**: Without this flag, attempting to sync metrics that already exist in a non-certified state may result in conflicts or the sync process not upgrading their certification status.
+
+## How syncing works
+
+As of version 0.2.0, `eppo_metrics_sync` submits metrics to Eppo's asynchronous
+sync endpoint and then polls for the result:
+
+1. Local YAML files are loaded and validated.
+2. The payload is submitted to `POST /api/v1/metrics/sync/async`, which returns a
+   sync `id` immediately with a status of `pending`.
+3. `GET /api/v1/metrics/sync/{id}` is polled every `--poll-interval` seconds until
+   the sync reports `success` or `failed`, or until `--poll-timeout` is reached.
+
+If the payload is identical to the last successful sync for the same sync tag, Eppo
+reports that there is nothing to do and the sync finishes immediately without
+polling. This is a success, so scheduled syncs of unchanged metrics exit zero.
+
+Note that Eppo rate limits these endpoints: 12 sync submissions per minute and 60
+status checks per minute. The default 5 second poll interval stays well inside the
+status limit; intervals below 1 second risk tripping it.
+
+The process exits non-zero if the sync fails, and any errors reported by Eppo are
+printed. If the poll timeout is reached the process exits non-zero as well, but note
+that the sync may still be running in Eppo &mdash; the timeout stops the client from
+waiting, not the sync itself. You can raise `--poll-timeout` for large metric
+repositories.
+
+`EppoMetricsSync.sync()` returns the final sync status as a dict, for example:
+
+```python
+{"id": 1234, "sync_tag": "your-sync-tag", "status": "success"}
+```
+
+When the payload was unchanged, no sync is created, so there is no `id` and the dict
+is flagged instead:
+
+```python
+{"sync_tag": "your-sync-tag", "status": "success", "unchanged": True}
+```
+
+> **Upgrading from 0.1.x:** `sync()` previously returned the `requests.Response`
+> from the synchronous endpoint. If you were inspecting that return value, read the
+> status dict described above instead. The CLI interface is unchanged apart from the
+> two new polling flags.
 
 ## Validation Rules & Constraints
 

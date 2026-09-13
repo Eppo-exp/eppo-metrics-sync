@@ -20,6 +20,18 @@ if __name__ == '__main__':
         help="The warehouse and schema where the dbt models live",
         default=None
     )
+    parser.add_argument(
+        "--poll-interval",
+        type=float,
+        help="Seconds to wait between sync status checks (default: 5)",
+        default=None
+    )
+    parser.add_argument(
+        "--poll-timeout",
+        type=float,
+        help="Seconds to wait for the sync to complete before giving up (default: 600)",
+        default=None
+    )
 
     args = parser.parse_args()
 
@@ -28,7 +40,9 @@ if __name__ == '__main__':
         schema_type=args.schema,
         dbt_model_prefix=args.dbt_model_prefix,
         sync_prefix=args.sync_prefix,
-        allow_upgrades=args.allow_upgrades
+        allow_upgrades=args.allow_upgrades,
+        poll_interval=args.poll_interval,
+        poll_timeout=args.poll_timeout
     )
 
     if args.dryrun:
